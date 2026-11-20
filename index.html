@@ -290,6 +290,100 @@ body{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset
   .feed{max-height:none}
   .badges{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
+
+/* ---------- phone scale: one type ramp + one spacing step for everything ----------
+   type  12 caption · 13 small · 15 body · 17 title · 19 number · 26/30/40 display (Karantina is condensed, so it runs larger)
+   space 4 · 8 · 12 · 16 */
+.cargrp{transition:none}
+.pc .sum,.pc .nextline{display:none}
+.badges .empty{grid-column:1/-1}
+@media (max-width:760px){
+  :root{--fs-cap:12px;--fs-sm:13px;--fs-body:15px;--fs-title:17px;--fs-num:19px;--sp1:4px;--sp2:8px;--sp3:12px;--sp4:16px}
+  body{font-size:var(--fs-body)}
+
+  .top .wrap{padding-block:var(--sp2)}
+  .brand b{font-size:26px}
+  .mebtn{font-size:var(--fs-sm);padding:6px 12px;height:34px}
+  .shield{height:34px;width:34px;padding:0;justify-content:center}
+
+  .note{font-size:var(--fs-cap);margin-top:var(--sp3);padding:var(--sp2) var(--sp3);border-radius:10px}
+  .install{font-size:var(--fs-sm);margin-top:var(--sp2)}
+
+  .route{margin-top:var(--sp3);border-radius:14px}
+  .sky{min-height:0;padding:var(--sp4) var(--sp4) 0}
+  .headline{padding-bottom:var(--sp4);max-width:none}
+  .headline .eyebrow{font-size:var(--fs-cap);letter-spacing:.06em}
+  .headline h1{font-size:clamp(34px,10.5vw,42px);margin:2px 0 4px}
+  .headline p{font-size:var(--fs-sm)}
+  .sun{width:120px;height:120px;bottom:-44px;inset-inline-end:var(--sp4)}
+  .road{height:96px}
+  .track{inset:0 22px}
+  .lane{top:54px;height:3px}
+  .stop{top:40px;gap:4px}
+  .stop i{height:28px}
+  .stop span{font-size:var(--fs-cap)}
+  .cargrp{top:8px}
+  .car{width:30px;height:30px;font-size:13px;border-width:2px}
+  .car + .car{margin-inline-start:-8px}
+  .legend{font-size:var(--fs-sm);padding:var(--sp2) var(--sp4) var(--sp3);gap:var(--sp1) var(--sp3)}
+
+  .sec,.cols.sec{margin-top:var(--sp4)}
+  .cols{gap:var(--sp3)}
+  .rail{gap:var(--sp3)}
+  h2{font-size:30px}
+  .rail h3,.dlg h3{font-size:26px}
+  .sec-head{margin-bottom:var(--sp2);gap:var(--sp1) var(--sp3)}
+  .sec-head p{font-size:var(--fs-cap);line-height:1.4}
+  .panel{padding:var(--sp4) var(--sp3)}
+
+  .board{gap:var(--sp2)}
+  .pc{padding:var(--sp3);gap:var(--sp2) var(--sp2);border-radius:12px}
+  .pc .rank{font-size:var(--fs-sm)}
+  .pc .nm{font-size:var(--fs-title)}
+  .pc .youtag{font-size:11px}
+  .pc .xp{font-size:var(--fs-num)}
+  .pc .xp small{font-size:var(--fs-cap)}
+  .pc .kv{display:none}
+  .pc .sum{display:flex;flex-wrap:wrap;gap:2px var(--sp3);grid-column:1/-1;grid-row:3;font-size:var(--fs-sm);color:var(--muted)}
+  .pc .sum b{color:var(--ink);font-family:var(--f-mono);font-weight:600}
+  .pc .nextline{display:block;grid-column:1/-1;grid-row:4;font-size:var(--fs-sm);overflow-wrap:anywhere}
+  .pc .nextline .lbl{color:var(--muted)}
+  .pc .eta{grid-row:5;font-size:var(--fs-cap);padding-top:var(--sp2)}
+  .sun{bottom:-70px;opacity:.75}
+  .headline p{text-shadow:0 1px 10px rgba(10,21,32,.8)}
+  .pill{font-size:11px}
+
+  .mtools{margin-bottom:var(--sp3);gap:var(--sp2)}
+  .chip{font-size:var(--fs-sm);padding:5px 12px}
+  .alert{font-size:var(--fs-sm);padding:var(--sp3)}
+  details.chap summary{padding:var(--sp3) 0;gap:var(--sp3)}
+  details.chap summary .t{font-size:24px;min-width:3.4em}
+  details.chap summary .cnt{font-size:var(--fs-cap)}
+  .m{padding:var(--sp3) var(--sp2);gap:var(--sp1) var(--sp3);grid-template-columns:24px minmax(0,1fr)}
+  .m input{width:22px;height:22px}
+  .m .title label{font-size:var(--fs-body)}
+  .m .desc{font-size:var(--fs-sm);line-height:1.45}
+  .m .side{grid-column:2}
+  .m .side a,.peek{font-size:var(--fs-cap)}
+
+  .feed{gap:var(--sp3)}
+  .ev{font-size:var(--fs-sm);gap:var(--sp2)}
+  .ev .tm{font-size:var(--fs-cap)}
+  .recap p{font-size:var(--fs-sm);line-height:1.6}
+  .recap .by,.small{font-size:var(--fs-cap)}
+  .bet{font-size:var(--fs-sm);padding:var(--sp2) 0}
+  .bd{padding:var(--sp3)}
+  .bd b{font-size:var(--fs-body)}
+  .bd span{font-size:var(--fs-cap)}
+
+  .tabbar{padding-top:var(--sp1);padding-bottom:calc(var(--sp1) + env(safe-area-inset-bottom,0px))}
+  .tabbar button{font-size:11px;gap:2px;padding:6px 0 4px}
+  .tabbar button svg{width:22px;height:22px}
+  .tabbar button[aria-current="page"]::before{top:-4px}
+  main.wrap{padding-bottom:calc(76px + env(safe-area-inset-bottom,0px))}
+  .toasts{padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))}
+  .toast{font-size:var(--fs-sm)}
+}
 [hidden]{display:none!important}
 .note .live{color:var(--palm)}
 .note .off{color:var(--coral)}
@@ -523,7 +617,7 @@ function renderStatus(){
   else if(conn==='nobackend')left='<span class="off">●</span> האפליקציה עוד לא מחוברת לגיליון: חסרה כתובת הסקריפט בקובץ config.js.';
   else if(conn==='notsetup')left='<span class="off">●</span> הגיליון עוד לא הוכן: צריך להריץ פעם אחת את setup בעורך הסקריפט.';
   else if(conn==='error')left='<span class="off">●</span> אין חיבור לגיליון כרגע. מנסים שוב אוטומטית.';
-  else left=`<span class="live">●</span> מחובר · מתעדכן לבד כל כמה שניות${P.me?` · מחובר/ת בתור <b>${NAME[P.me]}</b>`:' · בחר/י את השם שלך למעלה כדי לסמן משימות'}`;
+  else left=`<span class="live">●</span> מחובר · מתעדכן לבד${P.me?` · את/ה <b>${NAME[P.me]}</b>`:''}`;
   el.innerHTML=`<span>${left}</span>${P.me?'<span class="acts"><button type="button" id="logout">התנתקות</button></span>':''}`;
 }
 function renderTop(){
@@ -563,7 +657,7 @@ function renderRoute(R){
   const [a,b]=R;
   document.getElementById('hl').textContent=!a.main?'הכביש פנוי':(a.main===b.main&&a.xp===b.xp?'תיקו בראש':`${a.p} בראש`);
   const pct=Math.round(a.main/TOTAL_MAIN*100);
-  document.getElementById('hlsub').textContent=a.main?`${a.main-b.main} משימות ראשיות לפני ${b.p} · ${pct}% מהעלילה · ${fmt(a.xp)} XP`:'אף אחד עוד לא התחיל.';
+  document.getElementById('hlsub').textContent=a.main?`${a.main-b.main} משימות ראשיות לפני ${b.p} · ${pct}% מהעלילה · ⁦${fmt(a.xp)} XP⁩`:'אף אחד עוד לא התחיל.';
   const tr=document.getElementById('track');tr.querySelectorAll('.stop,.cargrp').forEach(n=>n.remove());
   let before=0;const lead=a.main;
   for(const c of CH){
@@ -605,13 +699,15 @@ function renderBoard(R){
       <dt>הבאה</dt><dd>${nextLabel(s)}</dd>
       ${s.missed.length?`<dt>התראה</dt><dd><span class="pill bad">${s.missed.length===1?'משימה שאפשר לפספס לא סומנה':`${s.missed.length} משימות שאפשר לפספס לא סומנו`}</span></dd>`:''}
     </dl>
+    <div class="sum"><span><b>${s.main}</b>/${TOTAL_MAIN} ראשיות</span><span><b>${s.opt}</b>/${TOTAL_OPT} אופציונליות</span><span>${s.curCh>5?'סוף':chName(s.curCh)}</span></div>
+    <div class="nextline"><span class="lbl">הבאה:</span> ${nextLabel(s)}${s.missed.length?` <span class="pill bad">${s.missed.length===1?'פספוס אפשרי':`${s.missed.length} פספוסים אפשריים`}</span>`:''}</div>
     <div class="eta">${eta(s)}</div>
   </article>`).join('');
 }
 function renderMissions(){
   const me=P.me?base(P.me):null;
   document.getElementById('log-h').textContent=me?`יומן המשימות של ${me.p}`:'יומן המשימות';
-  document.getElementById('logsub').textContent=me?`${me.main+me.opt} מתוך ${M.length} בוצעו`:'בחר/י את השם שלך למעלה כדי לסמן';
+  document.getElementById('logsub').textContent=me?`${me.main+me.opt} מתוך ${M.length} בוצעו`:'';
   document.getElementById('hideDone').setAttribute('aria-pressed',P.hideDone);
   document.getElementById('onlyMain').setAttribute('aria-pressed',P.onlyMain);
   const al=[];
