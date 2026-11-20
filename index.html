@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Leonida HQ</title>
+<meta name="theme-color" content="#0A1520">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Leonida HQ">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<script src="config.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Karantina:wght@400;700&family=Rubik:wght@400;500;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+/* Layout: a sunset highway across Leonida as the hero (everyone's car on one road), a leaderboard strip, then my mission log beside a rail of feed / recap / bets / badges. Single dark "humid night" look, chosen on purpose. */
+:root{
+  color-scheme: dark;
+  --night:#0A1520; --panel:#102131; --panel-2:#15293B; --line:#21394C;
+  --ink:#ECF3F1; --muted:#8EA6AE; --faint:#5E7882;
+  --coral:#FF5D73; --mango:#FFB547; --palm:#2BD4B4; --lilac:#A3A3FF;
+  --asphalt:#0F1922;
+  --f-display:"Karantina","Rubik",system-ui,"Segoe UI",Arial,sans-serif;
+  --f-body:"Rubik",system-ui,"Segoe UI",Arial,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Consolas,monospace;
+  --r:12px;
+}
+*{box-sizing:border-box}
+body{background:var(--night);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.5}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--night)}
+button{font:inherit;color:inherit;cursor:pointer}
+a{color:var(--palm)}
+:focus-visible{outline:2px solid var(--mango);outline-offset:2px;border-radius:6px}
+.wrap{max-width:1180px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.num{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+
+/* top bar */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:6;background:color-mix(in srgb,var(--night) 90%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.top .wrap{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px 18px;padding-block:10px}
+.brand{display:flex;align-items:baseline;gap:10px}
+.brand b{font-family:var(--f-display);font-weight:700;font-size:34px;line-height:1;letter-spacing:.04em;color:var(--mango)}
+.brand b span{color:var(--coral)}
+.brand small{color:var(--muted);font-size:13px}
+.controls{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.controls .lbl{color:var(--muted);font-size:13px}
+.who{display:flex;gap:4px;background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:3px}
+.who button{border:0;background:transparent;border-radius:999px;padding:4px 12px;font-size:14px;display:flex;align-items:center;gap:6px}
+.who button .dot{width:8px;height:8px;border-radius:50%;background:var(--c)}
+.who button[aria-pressed="true"]{background:var(--c);color:var(--night);font-weight:700}
+.who button[aria-pressed="true"] .dot{background:var(--night)}
+.shield{border:1px solid var(--line);background:var(--panel);border-radius:999px;padding:5px 12px;font-size:13px;display:flex;align-items:center;gap:6px}
+.shield[aria-pressed="true"]{border-color:var(--palm);color:var(--palm)}
+.shield svg{width:14px;height:14px}
+
+.note{margin-top:14px;display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;justify-content:space-between;font-size:13px;color:var(--muted);border:1px dashed var(--line);border-radius:10px;padding:8px 12px}
+.note button{background:none;border:0;color:var(--mango);text-decoration:underline;padding:0}
+
+/* hero route */
+.route{margin-top:16px;border-radius:16px;overflow:hidden;border:1px solid var(--line)}
+.sky{position:relative;min-height:190px;padding:22px 24px 0;background:linear-gradient(180deg,#14223F 0%,#3A2550 34%,#B8456A 64%,#FF8E5E 84%,#FFC56B 100%);overflow:hidden}
+.sun{position:absolute;inset-inline-end:9%;bottom:-70px;width:210px;height:210px;border-radius:50%;background:linear-gradient(180deg,#FFE29A 0%,#FFB547 45%,#FF5D73 100%);
+  -webkit-mask:repeating-linear-gradient(180deg,#000 0 15px,transparent 15px 21px);mask:repeating-linear-gradient(180deg,#000 0 15px,transparent 15px 21px);opacity:.95}
+.palm{position:absolute;bottom:0;width:120px;height:170px;opacity:.9}
+.headline{position:relative;max-width:34ch;padding-bottom:22px}
+.headline .eyebrow{font-size:12px;letter-spacing:.12em;color:#FFD9C2;text-transform:uppercase}
+.headline h1{margin:2px 0 4px;font-family:var(--f-display);font-weight:700;font-size:clamp(46px,8vw,76px);line-height:.9;text-wrap:balance;color:#FFF6EA;text-shadow:0 2px 18px rgba(10,21,32,.45)}
+.headline p{margin:0;color:#FFE9DC;font-size:15px;text-shadow:0 1px 8px rgba(10,21,32,.5)}
+.road{position:relative;height:150px;background:var(--asphalt);border-top:3px solid #FFC56B}
+.track{position:absolute;inset:0 44px}
+.lane{position:absolute;inset-inline:0;top:74px;height:4px;background:repeating-linear-gradient(90deg,var(--mango) 0 22px,transparent 22px 40px);opacity:.75}
+.stop{position:absolute;top:58px;transform:translateX(50%);display:flex;flex-direction:column;align-items:center;gap:6px}
+.stop i{display:block;width:2px;height:36px;background:var(--line)}
+.stop span{font-size:12px;color:var(--muted);white-space:nowrap}
+.stop.reached span{color:var(--ink)}
+.stop.finish i{background:var(--palm)}
+.stop .s{display:none}
+.cargrp{position:absolute;top:12px;transform:translateX(50%);display:flex;flex-direction:column;align-items:center;gap:3px;transition:inset-inline-start .8s cubic-bezier(.2,.8,.2,1)}
+.cars{display:flex}
+.car{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:16px;color:var(--night);background:var(--c);border:3px solid var(--asphalt);box-shadow:0 0 0 2px var(--c),0 6px 18px color-mix(in srgb,var(--c) 45%,transparent)}
+.car + .car{margin-inline-start:-10px}
+.car.me{outline:2px dashed var(--ink);outline-offset:3px}
+.cargrp small{font-size:11px;color:var(--muted);white-space:nowrap}
+
+h2{font-family:var(--f-display);font-weight:700;font-size:34px;line-height:1;margin:0;letter-spacing:.01em}
+.sec{margin-top:28px}
+.sec-head{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:6px 16px;margin-bottom:12px}
+.sec-head p{margin:0;color:var(--muted);font-size:13px}
+
+/* leaderboard */
+.board{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.pc{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;display:flex;flex-direction:column;gap:8px;position:relative}
+.pc.me{border-color:var(--c);box-shadow:inset 0 0 0 1px var(--c)}
+.pc .row1{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.pc .rank{font-family:var(--f-mono);font-size:13px;color:var(--muted)}
+.pc .nm{font-size:18px;font-weight:700;color:var(--c);display:flex;align-items:center;gap:8px}
+.pc .youtag{font-size:11px;font-weight:500;color:var(--night);background:var(--c);border-radius:999px;padding:1px 8px}
+.pc .xp{font-family:var(--f-display);font-weight:700;font-size:44px;line-height:.9}
+.pc .xp small{font-family:var(--f-body);font-size:13px;color:var(--muted);font-weight:400;margin-inline-start:4px}
+.bar{height:8px;border-radius:99px;background:var(--panel-2);overflow:hidden}
+.bar i{display:block;height:100%;background:var(--c);border-radius:99px;transition:width .6s}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:2px 10px;font-size:13px}
+.kv dt{color:var(--muted)}
+.kv dd{margin:0;text-align:end;min-width:0;overflow-wrap:anywhere}
+.pc .eta{font-size:12px;color:var(--muted);border-top:1px solid var(--line);padding-top:8px}
+
+/* main columns */
+.cols{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);gap:22px;align-items:start}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:16px}
+.rail{display:flex;flex-direction:column;gap:16px}
+.rail h3{margin:0 0 10px;font-family:var(--f-display);font-weight:700;font-size:26px;line-height:1;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.pill{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-family:var(--f-body);font-weight:500;border-radius:999px;padding:1px 8px;border:1px solid var(--line);color:var(--muted);white-space:nowrap}
+.pill.warn{border-color:color-mix(in srgb,var(--mango) 60%,transparent);color:var(--mango)}
+.pill.bad{border-color:color-mix(in srgb,var(--coral) 60%,transparent);color:var(--coral)}
+.pill.good{border-color:color-mix(in srgb,var(--palm) 60%,transparent);color:var(--palm)}
+.pill.demo{border-style:dashed}
+
+/* missions */
+.mtools{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px}
+.chip{border:1px solid var(--line);background:var(--panel-2);border-radius:999px;padding:4px 12px;font-size:13px}
+.chip[aria-pressed="true"]{border-color:var(--mango);color:var(--mango)}
+.alerts{display:flex;flex-direction:column;gap:8px;margin-bottom:12px}
+.alert{border-radius:10px;padding:10px 12px;font-size:14px;border:1px solid;display:flex;gap:10px;align-items:flex-start}
+.alert.bad{border-color:color-mix(in srgb,var(--coral) 50%,transparent);background:color-mix(in srgb,var(--coral) 9%,transparent)}
+.alert.warn{border-color:color-mix(in srgb,var(--mango) 50%,transparent);background:color-mix(in srgb,var(--mango) 8%,transparent)}
+.alert b{white-space:nowrap}
+details.chap{border-top:1px solid var(--line)}
+details.chap:first-of-type{border-top:0}
+details.chap summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:12px;padding:12px 2px}
+details.chap summary::-webkit-details-marker{display:none}
+details.chap summary .t{font-family:var(--f-display);font-weight:700;font-size:26px;line-height:1;min-width:3.6em}
+details.chap summary .mini{flex:1;min-width:60px}
+details.chap summary .cnt{font-size:13px;color:var(--muted);white-space:nowrap}
+details.chap summary .chev{transition:transform .2s;color:var(--muted)}
+details.chap[open] summary .chev{transform:rotate(-90deg)}
+.ms{list-style:none;margin:0 0 10px;padding:0;display:flex;flex-direction:column;gap:2px}
+.m{display:grid;grid-template-columns:28px minmax(0,1fr) auto;gap:4px 10px;align-items:start;padding:9px 8px;border-radius:9px}
+.m:hover{background:var(--panel-2)}
+.m input{appearance:none;-webkit-appearance:none;margin:2px 0 0;width:22px;height:22px;border-radius:6px;border:2px solid var(--faint);background:transparent;cursor:pointer;display:grid;place-items:center}
+.m input:checked{background:var(--palm);border-color:var(--palm)}
+.m input:checked::after{content:"";width:6px;height:11px;border:solid var(--night);border-width:0 3px 3px 0;transform:rotate(45deg) translate(-1px,-1px)}
+.m .body{min-width:0}
+.m .title{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px}
+.m .title label{cursor:pointer;font-weight:500;overflow-wrap:anywhere}
+.m .n{font-family:var(--f-mono);font-size:12px;color:var(--faint);min-width:2.2em}
+.m .desc{margin:2px 0 0;font-size:13px;color:var(--muted);direction:ltr;text-align:right}
+.m.done .title label{color:var(--muted);text-decoration:line-through;text-decoration-color:var(--faint)}
+.m.done .desc{display:none}
+.m.opt .title label{font-weight:400}
+.m .side{display:flex;gap:6px;align-items:center}
+.m .side a{font-size:12px;white-space:nowrap}
+.m.locked .title label,.m.locked .desc{filter:blur(6px);user-select:none}
+.m.locked .pill.who-tag{filter:blur(4px)}
+.peek{border:1px solid var(--line);background:transparent;border-radius:999px;font-size:12px;padding:1px 10px;color:var(--muted);display:inline-flex;align-items:center;gap:4px}
+.peek svg{width:12px;height:12px}
+.m.current{background:color-mix(in srgb,var(--mango) 8%,transparent);box-shadow:inset 3px 0 0 var(--mango)}
+.m.current .n{color:var(--mango)}
+
+/* feed */
+.feed{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px;max-height:340px;overflow:auto}
+.ev{display:grid;grid-template-columns:28px minmax(0,1fr) auto;gap:10px;align-items:start;font-size:14px}
+.ev .av{width:28px;height:28px;border-radius:50%;background:var(--c);color:var(--night);display:grid;place-items:center;font-weight:700;font-size:13px}
+.ev .tx{min-width:0;overflow-wrap:anywhere}
+.ev .tx em{font-style:normal;color:var(--muted)}
+.ev .tm{font-size:12px;color:var(--faint);display:block}
+.ev .gain{font-family:var(--f-mono);font-size:13px;color:var(--palm);white-space:nowrap}
+.ev.new{animation:flash 1.6s ease-out}
+@keyframes flash{from{background:color-mix(in srgb,var(--mango) 25%,transparent)}to{background:transparent}}
+
+.recap p{margin:0 0 8px;font-size:14px;line-height:1.6}
+.recap .by{font-size:12px;color:var(--faint)}
+
+.bet{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:8px;align-items:center;padding:7px 0;border-top:1px solid var(--line);font-size:14px}
+.bet:first-of-type{border-top:0}
+.bet .bn{display:flex;align-items:center;gap:8px;min-width:0}
+.bet .bn .dot{width:10px;height:10px;border-radius:50%;background:var(--c);flex:none}
+.bet .bn small{color:var(--muted);font-size:12px}
+.bet .odds{font-family:var(--f-mono);font-size:14px;color:var(--mango)}
+.bet button{border:1px solid var(--line);background:var(--panel-2);border-radius:8px;padding:3px 10px;font-size:13px}
+.bet button[aria-pressed="true"]{background:var(--mango);border-color:var(--mango);color:var(--night);font-weight:700}
+.backers{display:flex;gap:3px;flex-wrap:wrap;justify-content:flex-end}
+.backers i{font-style:normal;font-size:11px;border-radius:999px;padding:0 6px;background:color-mix(in srgb,var(--c) 22%,transparent);color:var(--c)}
+.small{font-size:12px;color:var(--faint);margin:8px 0 0}
+
+.badges{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.bd{border:1px solid var(--line);border-radius:10px;padding:9px 10px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.bd b{font-size:14px}
+.bd span{font-size:12px;color:var(--muted)}
+.bd.on{border-color:color-mix(in srgb,var(--mango) 55%,transparent);background:color-mix(in srgb,var(--mango) 7%,transparent)}
+.bd.on b{color:var(--mango)}
+.bd:not(.on){opacity:.6}
+
+.toasts{position:fixed;z-index:20;inset-inline:0;bottom:0;padding-bottom:calc(16px + env(safe-area-inset-bottom,0px));padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;align-items:center;gap:8px;pointer-events:none}
+.toast{background:var(--panel-2);border:1px solid var(--mango);border-radius:12px;padding:10px 16px;font-size:14px;box-shadow:0 10px 30px rgba(0,0,0,.4);animation:up .35s ease-out;max-width:100%}
+.toast b{color:var(--mango);font-family:var(--f-mono)}
+@keyframes up{from{transform:translateY(16px);opacity:0}to{transform:none;opacity:1}}
+footer{margin:36px 0 40px;color:var(--faint);font-size:12px}
+
+@media (max-width:980px){.board{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:860px){.cols{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:560px){
+  .board{grid-template-columns:minmax(0,1fr)}
+  .stop .l{display:none}.stop .s{display:inline}
+  .track{inset:0 26px}
+  .sun{width:150px;height:150px;bottom:-50px}
+  .palm{display:none}
+  .badges{grid-template-columns:minmax(0,1fr)}
+  .m{grid-template-columns:28px minmax(0,1fr)}
+  .m .side{grid-column:2}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+html,body{margin:0}
+body{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);-webkit-tap-highlight-color:transparent;overscroll-behavior-y:none}
+.install{margin-top:12px;display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;justify-content:space-between;border:1px solid color-mix(in srgb,var(--mango) 55%,transparent);background:color-mix(in srgb,var(--mango) 8%,transparent);border-radius:10px;padding:10px 12px;font-size:14px}
+.install b{color:var(--mango)}
+.install .x{background:none;border:0;color:var(--muted);font-size:13px;text-decoration:underline;padding:0}
+.install svg{width:16px;height:16px;vertical-align:-3px}
+[hidden]{display:none!important}
+.note .live{color:var(--palm)}
+.note .off{color:var(--coral)}
+.note .acts{display:flex;gap:14px;align-items:center}
+.who button.taken{opacity:.5}
+.overlay{position:fixed;inset:0;z-index:30;background:rgba(5,10,15,.75);display:grid;place-items:center;padding:16px}
+.dlg{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:20px;width:min(380px,100%);display:flex;flex-direction:column;gap:12px}
+.dlg h3{font-family:var(--f-display);font-weight:700;font-size:34px;margin:0;line-height:1}
+.dlg p{margin:0;color:var(--muted);font-size:14px}
+.dlg input{font-family:var(--f-mono);font-size:28px;letter-spacing:.5em;text-align:center;padding:10px;border-radius:10px;border:1px solid var(--line);background:var(--night);color:var(--ink);direction:ltr;width:100%}
+.dlg .err{color:var(--coral);font-size:13px;min-height:1.3em}
+.dlg .row{display:flex;gap:8px}
+.btn{border:0;border-radius:10px;padding:9px 18px;font-weight:700;background:var(--mango);color:var(--night)}
+.btn.ghost{background:transparent;border:1px solid var(--line);color:var(--ink);font-weight:500}
+.btn[disabled]{opacity:.5;cursor:wait}
+.empty{color:var(--muted);font-size:14px;margin:0}
+</style>
+</head>
+<body>
+<div>
+  <header class="top">
+    <div class="wrap">
+      <div class="brand"><b>LEONIDA <span>HQ</span></b><small>המרוץ של החבר'ה</small></div>
+      <div class="controls">
+        <span class="lbl">אני:</span>
+        <div class="who" id="who" role="group" aria-label="בחירת שחקן"></div>
+        <button class="shield" id="shield" aria-pressed="true" type="button"></button>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <div class="note" id="status" role="status"><span>טוען את המרוץ…</span></div>
+    <div class="install" id="install" hidden></div>
+
+    <section class="route" aria-label="מסלול ההתקדמות של כולם">
+      <div class="sky">
+        <svg class="palm" style="inset-inline-start:46%" viewBox="0 0 120 170" aria-hidden="true"><path d="M62 170 C60 130 58 95 64 58" stroke="#1A1428" stroke-width="6" fill="none"/><path d="M64 58 C40 40 18 44 4 58 C24 46 44 48 64 60 Z M64 58 C84 34 106 36 118 50 C98 42 82 46 64 60 Z M64 58 C58 30 40 14 20 12 C42 22 54 38 63 60 Z M64 58 C76 28 92 16 110 18 C92 26 78 40 65 60 Z M64 58 C52 62 34 80 30 98 C42 80 52 70 65 60 Z" fill="#1A1428"/></svg>
+        <svg class="palm" style="inset-inline-start:58%;width:90px;height:130px" viewBox="0 0 120 170" aria-hidden="true"><path d="M58 170 C62 130 66 95 60 58" stroke="#1A1428" stroke-width="6" fill="none"/><path d="M60 58 C40 40 18 44 4 58 C24 46 44 48 60 60 Z M60 58 C84 34 106 36 118 50 C98 42 82 46 60 60 Z M60 58 C58 30 40 14 20 12 C42 22 54 38 59 60 Z M60 58 C76 28 92 16 110 18 C92 26 78 40 61 60 Z" fill="#1A1428"/></svg>
+        <div class="sun" aria-hidden="true"></div>
+        <div class="headline">
+          <div class="eyebrow">מצב המרוץ · 117 משימות עלילה</div>
+          <h1 id="hl">Leonida HQ</h1>
+          <p id="hlsub">טוען…</p>
+        </div>
+      </div>
+      <div class="road"><div class="track" id="track"><div class="lane"></div></div></div>
+    </section>
+
+    <section class="sec" aria-labelledby="board-h">
+      <div class="sec-head"><h2 id="board-h">טבלת המובילים</h2><p>ראשית 100 · אופציונלית 50 · שאפשר לפספס +100 · ראשון לסגור פרק (1–5) +300</p></div>
+      <div class="board" id="board"></div>
+    </section>
+
+    <div class="cols sec">
+      <section class="panel" aria-labelledby="log-h">
+        <div class="sec-head"><h2 id="log-h"></h2><p id="logsub"></p></div>
+        <div class="mtools">
+          <button class="chip" id="hideDone" type="button" aria-pressed="false">הסתר משימות שבוצעו</button>
+          <button class="chip" id="onlyMain" type="button" aria-pressed="false">רק ראשיות</button>
+        </div>
+        <div class="alerts" id="alerts"></div>
+        <div id="chapters"></div>
+      </section>
+
+      <aside class="rail">
+        <section class="panel" aria-labelledby="feed-h">
+          <h3 id="feed-h">פיד חי</h3>
+          <ul class="feed" id="feed"></ul>
+        </section>
+        <section class="panel recap" aria-labelledby="recap-h">
+          <h3 id="recap-h">המהדורה מליאונידה</h3>
+          <div id="recap"></div>
+          <p class="by">נכתב אוטומטית מהנתונים, ומתעדכן עם כל סימון.</p>
+        </section>
+        <section class="panel" aria-labelledby="bet-h">
+          <h3 id="bet-h"></h3>
+          <div id="bets"></div>
+          <p class="small">כל הימור שווה 100 נקודות הימור, בנפרד מה-XP. היחס מחושב לפי כמה משימות ראשיות נשארו לכל אחד עד סוף הפרק.</p>
+        </section>
+        <section class="panel" aria-labelledby="badge-h">
+          <h3 id="badge-h"></h3>
+          <div class="badges" id="badges"></div>
+        </section>
+      </aside>
+    </div>
+
+    <footer>Leonida HQ · המרוץ של עידן, טל, עמית ותומר · 117 משימות ראשיות, 24 אופציונליות. כל הסימונים נשמרים בגיליון.</footer>
+  </main>
+
+  <div class="overlay" id="dlg" hidden>
+    <form class="dlg" id="dlgForm" autocomplete="off">
+      <h3 id="dlgTitle"></h3>
+      <p id="dlgText"></p>
+      <input id="pin" type="password" inputmode="numeric" pattern="\d{4}" maxlength="4" aria-label="קוד בן 4 ספרות" required>
+      <div class="err" id="dlgErr" aria-live="polite"></div>
+      <div class="row"><button class="btn" id="dlgOk" type="submit">כניסה</button><button class="btn ghost" id="dlgCancel" type="button">ביטול</button></div>
+    </form>
+  </div>
+  <div class="toasts" id="toasts" aria-live="polite"></div>
+</div>
+
+<script>
+const RAW = [[0, "Prologue", 1, 0, "L", "Lucia meets with a prison counselor to talk about her arrest and her chances of early release."], [1, "Gone Fishing", 1, 0, "J", "A smuggling run with Cal and Donnie goes wrong, and Jason has to head into Kingfishers territory in Pelican Valley."], [1, "Gear Up", 1, 0, "J", "Jason visits the local Ammu-Nation to pick up a new longarm."], [1, "Unwanted Attention", 1, 0, "J", "Cal and Jason head to Hamlet to recover a payment owed to Brian from the police impound."], [1, "Lab Fees", 1, 0, "J", "Jason collects Brian's rent from a gift shop that hides more than souvenirs."], [1, "Pipework", 1, 0, "J", "While collecting rent from Mandy, one of Brian's tenants, Jason ends up doing some home repairs."], [1, "Just a Scratch", 1, 0, "J", "Jason takes his battered Ganado to Joey at Coastal Auto Care for some much-needed repairs."], [1, "Get Shirley's Rum", 0, 1, "J", "Jason's neighbor Shirley is thirsty for rum and asks him to pick some up from the store."], [1, "Steal the Scooter", 0, 1, "J", "Shirley has an unusual plan involving her neighbor's mobility scooter."], [1, "Hey Arnold!", 1, 0, "J", "Brian's long-time broker Arnold has stopped answering, and Jason and Cal help track him down."], [1, "Island Dreams", 1, 0, "J", "Kenton needs Jason to lead a bachelor party on a dive to a shipwreck, with some treasure hunting on the side."], [1, "Feng Shui", 1, 0, "J", "Jason and Cal hang out at home and rearrange the furniture before Lucia arrives."], [1, "Pick Up Groceries", 0, 0, "J", "Buy some groceries and bring them home before Lucia arrives."], [1, "Buy Flowers", 0, 0, "J", "Order some flowers for Lucia and have them delivered to the house."], [1, "Buy Lucia a Necklace", 0, 0, "J", "Buy Lucia a necklace from The Siren's Chest jewelry store as a gift."], [1, "Get The Chop", 0, 0, "J", "Visit Barnacle Beauties to get a new haircut or tidy up your beard."], [1, "Get Lucia's Clothes", 0, 0, "J", "Lucia asks Jason to collect some clothes from her friend Andy at the Manatee's Rest bar."], [1, "Catch a Bigger Fish", 0, 0, "J", "Cal bets Jason he can't land a stoplight parrotfish heavier than 2 lbs."], [1, "Coming Home", 1, 0, "J", "Lucia is getting out of Hamlet Correctional and needs a ride home."], [1, "Clean Up After Donnie", 1, 0, "J", "A lost package from Donnie's botched delivery is sending a signal near a fishing spot in Hamlet."], [1, "Buck Me", 1, 0, "J", "Lucia needs a bank account for her community service pay, so Jason meets her at the Fleeca bank."], [1, "Down to Earth", 1, 0, "J", "Brian wants Jason at the marina for a new job, and Lucia decides to come along."], [1, "Find the Lost Drugs", 0, 0, "J", "Follow the signals and search four areas of the swamp for lost drug packages."], [1, "Deposit Cash Into BuckMe", 1, 0, "J", "Deposit some cash into your BuckMe checking account at any ATM."], [1, "Save for the Future", 1, 0, "J", "Keep adding money to your Family Savings to reach the next goal and unlock new BuckMe perks."], [1, "Day Release", 1, 0, "B", "Kat and Mattia invite Jason and Lucia out for a day of partying, starting at the Rusty Anchor."], [1, "Clock Out", 0, 0, "J", "Lucia finished work early and needs a ride home before 4pm."], [1, "Clear Skies", 1, 0, "J", "Brian has a job for Jason and Donnie that starts in Southwind."], [1, "Building a Life", 1, 0, "J", "Jason and Lucia work on their new home together, and Jason gives Lucia a lesson with a gun."], [1, "Ring the Bell!", 0, 1, "J", "Cal talks Jason into a few drinks at the Rusty Anchor, and the night ends with Jason making sure his friend gets home in one piece."], [1, "Swamped", 1, 0, "J", "Brian asks Jason to meet him at the marina before heading out to see the Kingfishers."], [1, "Don Gone", 1, 0, "J", "Brian sends Jason to clear out Donnie's trailer in Key Lento."], [1, "Donnie's Lost Drugs", 0, 0, "J", "Donnie's boat sank off Corsair Key with drugs still on board, and Brian wants them back."], [1, "Recalibration", 1, 0, "J", "Cal is going through a hard time, so Jason and Lucia try to cheer him up."], [1, "Tourist Trap", 1, 0, "B", "Mattia offers Jason and Lucia a simple job that could lead to well-paid work."], [1, "Home Sweet Home", 1, 0, "L", "Lucia goes back to Jason's house to collect some of his things before the two of them skip town."], [1, "Discharge Time", 1, 0, "B", "Lucia heads to Vice City Hospital, but trouble is waiting for her there."], [2, "What's in the Bag?", 1, 0, "L", "Jason and Lucia wake up in a Port Gellhorn motel and finally take a look inside the bag."], [2, "Ambulance Chaser", 1, 0, "L", "The ambulance from the hospital escape is still nearby, and Lucia needs to get rid of it before the cops find it."], [2, "Play Nurse", 1, 0, "L", "Keep checking in on Jason at the motel until he's back on his feet."], [2, "Overnight Charges", 1, 0, "L", "Go to the motel's front desk and find out how much is owed for the room."], [2, "Just Moved In", 1, 0, "L", "Pick up some supplies from the Alpha convenience store near the motel."], [2, "Girls' Trip", 1, 0, "L", "Jason needs painkillers to recover from his surgery, so Lucia asks around the motel."], [2, "Pick Up a Gun", 0, 0, "L", "Head to Gellhorn Outfitters to buy a gun or grab one of your weapons from the locker."], [2, "Moses", 1, 0, "L", "Vicki said a mechanic named Moses could set Lucia up with a ride, so take a low-key car to his shop."], [2, "New Look", 1, 0, "L", "Visit the Pearl House Hair Salon to give Lucia a new hairstyle."], [2, "How Do I Look?", 1, 0, "L", "Buy Lucia some new clothes, or pick them up cheap at Bargain World."], [2, "Got Pills?", 1, 0, "L", "Dunk will call when he has a lead on some painkillers for Jason."], [2, "Daily Driver", 1, 0, "L", "Moses wants an '82 Canis Crawler taken back from some clients who didn't pay."], [2, "Behind on Payments", 1, 0, "L", "Linda is holding the necklace as collateral until the $900 owed for the motel room is paid."], [2, "Slam Dunk", 1, 0, "L", "Go to Dunk's trailer and find out how he plans to get stronger painkillers for Jason."], [2, "Breakfast Run", 1, 0, "L", "Head back to the motel to check how Jason's doing."], [2, "Coffee Break", 1, 0, "B", "After their string of stick-ups, Jason and Lucia sit down over coffee to plan their next move."], [2, "Thrillbillies", 0, 0, "B", "There's prize money to be won at the Thrillbilly Mud Club for anyone willing to get dirty."], [2, "Twist Wrist, Smash, Grab", 0, 0, "B", "Billy is planning a job and needs one more rider to join his crew."], [2, "Hit Avery Pawn", 0, 0, "B", "Lucia suggests hitting Avery Pawn in Port Gellhorn together, a shop full of valuables."], [2, "Hit Kingpin Bowling", 0, 0, "B", "The bowling alley has been taken over by Kolt & Associates and looks like a good next target."], [2, "Impounded Vehicle", 0, 0, "B", "Lucia's car has been impounded and she needs to get it back."], [2, "Prepare for Vice City", 1, 0, "B", "Make at least $15,000 while Dre'Quan sorts out a place to stay in Vice City."], [2, "Afternoon Delight", 1, 0, "B", "Vicki wants to rob her boss at Delights and split the cash."], [2, "Checking Out", 1, 0, "B", "When they're ready, Jason and Lucia pack up and leave the motel to meet Dre'Quan in Vice City."], [3, "Welcome to Vice City", 1, 0, "B", "Jason and Lucia arrive in Vice City and look up Jason's old friend Dre'Quan."], [3, "Dealer's Choice", 1, 0, "J", "Boobie says Jason owes him a favor for the apartment and sends him on a drug deal with Dre'Quan."], [3, "Meet the Heders", 1, 0, "B", "Jason and Lucia go on a double date with Brian and Lori Heder."], [3, "Dubious Provenance", 1, 0, "B", "Jason and Lucia take the statue to an antique store in Capri to find out what it really is."], [3, "Mami Knows Best", 1, 0, "L", "Lucia catches up with her mom, Mia, who has just opened her own real estate business."], [3, "Get Your Wheels", 0, 0, "", "Get yourself a set of wheels in Vice City."], [3, "South Leonida Real Estate", 1, 0, "L", "Lucia meets up with Mia again and has another run-in with the M7 gang."], [3, "Tyrone", 1, 0, "J", "Jason goes to see Tyrone about some work."], [3, "Here, Kitty Kitty", 1, 0, "J", "Jason goes to see Tyrone and ends up looking for a man named Charles."], [3, "Send Money to Lorena", 1, 0, "", "Send some money to Lorena."], [3, "Encrypted Hard Drive", 1, 0, "", "Find out more about the encrypted hard drive from the bag."], [3, "Car Service", 1, 0, "L", "Lucia steals a car for Raul."], [3, "Send More Money to Lorena", 1, 0, "", "Send another payment to Lorena."], [3, "Top Billing", 1, 0, "B", "Jason, Lucia and Dre'Quan go to see the Real Dimez in concert."], [3, "Boobie Time", 1, 0, "J", "Jason spends some time driving Boobie around Vice City."], [3, "Yasmani's Jewelry Jobs", 0, 0, "B", "Hit a series of jewelry stores around Vice City and sell the loot to Yasmani."], [3, "First Impressions", 1, 0, "B", "Jason and Lucia meet Raul for the first time."], [3, "Caught Slipping", 1, 0, "B", "Jason and Lucia have to stop a burglary."], [3, "Crosstown Traffic", 1, 0, "B", "Lucia tails a gang member for Raul, while Jason goes to meet Karim."], [3, "Credit Check", 1, 0, "B", "Raul invites Jason and Lucia to his base to meet his crew."], [3, "Steal the Zorrusso for Randy", 1, 0, "B", "Jason and Lucia steal a high-end Zorrusso for Randy."], [3, "Raul's Next Job", 1, 0, "", "Raul gets in touch about his next job."], [3, "Race Against Yago", 0, 1, "J", "Take on Yago in a race. Time-sensitive and missable."], [3, "Sinfrontera National Bank", 1, 0, "B", "Jason and Lucia scope out a bank as preparations for a big heist begin."], [3, "Security Expert", 1, 0, "B", "Jason and Lucia meet a security expert who could help with the heist."], [3, "Heist Planning", 1, 0, "", "Go over the plan for the upcoming heist."], [3, "Ride or Die", 1, 0, "J", "Jason helps out Dre'Quan."], [3, "Company Property", 1, 0, "B", "Jason and Lucia meet Brian and help with a weapons shipment."], [3, "The Missing Link", 1, 0, "B", "Lucia meets Andrea, and the trail leads her to a cockfight."], [3, "Safe Word", 1, 0, "B", "Lucia steals a practice safe and learns a new skill."], [3, "Cooties", 1, 0, "L", "Lucia helps shoot a music video."], [3, "Bricked Up", 1, 0, "B", "Jason and Lucia do some work for Boobie."], [3, "Hidden Charges", 1, 0, "B", "Jason and Lucia get the explosives ready for the heist."], [3, "The Cartel Heist", 1, 0, "B", "The plan is set and it is time to hit the bank."], [4, "Ocean Beach", 1, 0, "B", "Jason and Lucia set up shop in Ocean Beach."], [4, "Another Life", 1, 0, "L", "Lucia thinks back on her past."], [4, "Pool Day", 1, 0, "", "Time for a day at the pool."], [4, "Company Cars", 1, 0, "B", "Jason and Lucia pick up some new wheels."], [4, "Lawyer Up", 1, 0, "B", "Jason and Lucia meet a lawyer, Abe Gonzalez."], [4, "It's a Date!", 1, 0, "", "Time for a date night."], [4, "Party Hard", 1, 0, "B", "Jason and Lucia work personal security for a celebrity."], [4, "Heavy Lifting", 1, 0, "B", "Jason and Lucia have a delivery to make."], [4, "Pay Abe's Fee", 1, 0, "", "Abe's services don't come cheap, so it's time to pay his fee."], [4, "Photo/Shoot", 1, 0, "B", "Jason, Lucia and Dre'Quan shoot a promo."], [4, "Bad Driver!", 0, 0, "", "Track down Felipe."], [4, "Making Gainz", 1, 0, "L", "Raul has a plan, and Lucia hits the gym to get to know someone new."], [4, "Too Much Baggage", 1, 0, "J", "Jason scopes out the airport and does some baggage handling."], [4, "Watch It", 1, 0, "J", "Jason and Dre'Quan meet a club owner."], [4, "Cash Injections", 1, 0, "L", "Lucia hangs out with Nate and helps out an associate."], [4, "Amateur Hour", 1, 0, "L", "Lucia helps Cisco confront a director."], [4, "Dirty Work", 1, 0, "B", "Jason and Lucia deal with Raina and make some new inroads."], [4, "Nate Will Be in Touch", 1, 0, "", "Help out Kordell's crew while you wait to hear from Nate."], [4, "Adventures in Babysitting", 1, 0, "J", "Jason works nightclub security for Andrés."], [4, "Fresh Evidence", 1, 0, "J", "Jason and Dre'Quan go after some blackmail material."], [4, "Rafa", 1, 0, "J", "Something comes up involving Rafa."], [4, "Power Play", 1, 0, "", "Help out Kordell's crew and gather some intel."], [4, "Child's Play", 1, 0, "B", "Jason and Lucia help out an acquaintance."], [4, "This Is a Free Call From…", 0, 1, "L", "Someone needs Lucia to pick them up. Time-sensitive and missable."], [4, "Headliners", 1, 0, "B", "The Dimez perform at VYB, and Jason and Lucia help with the launch party."], [4, "Close Surveillance", 1, 0, "J", "Jason uses a spy drone to keep an eye on some bodybuilders."], [4, "Delivery Method", 1, 0, "J", "Jason goes undercover to help Andrea."], [4, "Team Building", 1, 0, "L", "Lucia meets Kordell and has to prove herself."], [4, "Fully Catered", 1, 0, "B", "Jason and Lucia steal a catering truck."], [4, "Heist Plans in Place", 1, 0, "", "Everything is ready for the airport heist."], [4, "VCIA Takedown", 1, 0, "B", "The airport heist is a go."], [4, "Tie Up Loose Ends", 1, 0, "", "After the heist, there are still some loose ends to tie up."], [4, "That's Where the Money Is…", 0, 0, "", "Wait at the café for someone to show up."], [4, "Call Valentina Back", 1, 0, "", "Valentina wants to hear back from you."], [4, "Sunset", 1, 0, "B", "Jason and Lucia go looking for answers."], [4, "Starting From Zero", 1, 0, "", "The final mission of Chapter 4."], [5, "Bird in the Hand", 1, 0, "B", "Jason and Lucia boost a new ride."], [5, "Taking Liberties", 1, 0, "", "A new plan comes together."], [5, "VC Baby", 1, 0, "", "Mattia gets in touch and asks for help."], [5, "Doggie Bag", 1, 0, "", "Meet Vinny and go hunting for some contraband."], [5, "Operation Savage Glory", 1, 0, "", "A valuable shipment needs to be recovered."], [5, "Honest Abe", 1, 0, "", "Time to negotiate a deal with Abe."], [5, "Unfinished Business", 1, 0, "", "There's still some unfinished business to take care of."], [5, "Pay Abe's Fee", 1, 0, "", "Abe's help comes at a price once again."], [5, "Protective Custody", 1, 0, "B", "Jason and Lucia work together and meet with Abe."], [5, "The End of the Road", 1, 0, "", "The final mission of the GTA 6 story."]];
+const API = String(window.LEONIDA_API || '').trim();
+const PLAYERS=[{k:'ido',n:'עידן',c:'var(--coral)'},{k:'tal',n:'טל',c:'var(--mango)'},{k:'amit',n:'עמית',c:'var(--palm)'},{k:'tomer',n:'תומר',c:'var(--lilac)'}];
+const NAME=Object.fromEntries(PLAYERS.map(p=>[p.k,p.n]));
+const COLOR=Object.fromEntries(PLAYERS.map(p=>[p.k,p.c]));
+const PROT={J:"ג'ייסון",L:'לוסיה',B:'שניהם'};
+const M=RAW.map((r,i)=>({i,ch:r[0],name:r[1],main:!!r[2],missable:!!r[3],prot:r[4],desc:r[5]}));
+const CH=[...new Set(M.map(m=>m.ch))];
+{const mk={};let no=0;for(const m of M){if(m.main){m.no=++no;mk[m.ch]=(mk[m.ch]||0)+1;m.mk=mk[m.ch];}}}
+const TOTAL_MAIN=M.filter(m=>m.main).length, TOTAL_OPT=M.length-TOTAL_MAIN;
+const MISSABLES=M.filter(m=>m.missable);
+const chName=c=>c===0?'פרולוג':'פרק '+c;
+const START=new Date(2026,10,19);
+const XP={main:100,opt:50,miss:100,first:300};
+const fmt=n=>n.toLocaleString('he-IL');
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const clone=o=>JSON.parse(JSON.stringify(o));
+const LOCK='<svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M4 7V5a4 4 0 1 1 8 0v2h1v8H3V7h1Zm2 0h4V5a2 2 0 1 0-4 0v2Z"/></svg>';
+const EYE='<svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M8 3C4 3 1.5 6.2 1 8c.5 1.8 3 5 7 5s6.5-3.2 7-5c-.5-1.8-3-5-7-5Zm0 8a3 3 0 1 1 0-6 3 3 0 0 1 0 6Z"/></svg>';
+
+/* ---------- this device's settings ---------- */
+const LS='leonida-hq-site-v1';
+let P={me:null,pin:null,shield:true,hideDone:false,onlyMain:false,peek:[],open:{}};
+try{Object.assign(P,JSON.parse(localStorage.getItem(LS))||{})}catch(e){}
+const saveP=()=>{try{localStorage.setItem(LS,JSON.stringify(P))}catch(e){}};
+
+/* ---------- shared state from the sheet ---------- */
+let ST={done:{},meta:{}};
+let conn='loading', lastV=null, pending=0, session=0, dlgFor=null;
+const emptyMeta=()=>({chAt:{},events:[],picks:{},pinSet:false});
+const doneOf=k=>ST.done[k]||[];
+const metaOf=k=>ST.meta[k]||emptyMeta();
+const canAct=()=>conn==='live'&&!!P.me&&!!P.pin;
+
+/* The sheet's script is reached over the internet. POST uses text/plain so the browser sends it directly (no CORS preflight). */
+async function apiGet(action){
+  const r=await fetch(API+(API.includes('?')?'&':'?')+'action='+action+'&t='+Date.now(),{cache:'no-store'});
+  if(!r.ok)throw new Error('http_'+r.status);
+  const j=await r.json();if(j&&j.ok===false&&j.error)throw new Error(j.error);return j;
+}
+async function apiPost(body){
+  const r=await fetch(API,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(body)});
+  if(!r.ok)throw new Error('http_'+r.status);
+  const j=await r.json();if(j&&j.ok===false&&(j.error==='not_setup'||j.error==='server_error'))throw new Error(j.error);return j;
+}
+function run(fn,...a){
+  if(!API)return Promise.reject(new Error('no_backend'));
+  if(fn==='api_state')return apiGet('state');
+  if(fn==='api_version')return apiGet('version').then(o=>o.v);
+  if(fn==='api_claim')return apiPost({action:'claim',k:a[0],pin:a[1]});
+  if(fn==='api_toggle')return apiPost({action:'toggle',k:a[0],pin:a[1],i:a[2],on:a[3],meta:a[4]});
+  if(fn==='api_meta')return apiPost({action:'meta',k:a[0],pin:a[1],meta:a[2]});
+  return Promise.reject(new Error('unknown'));
+}
+let chain=Promise.resolve();
+const enqueue=job=>(chain=chain.then(job,job));
+
+function applyState(s){
+  if(!s||!s.done)return;
+  if(pending>0&&P.me){s.done[P.me]=ST.done[P.me];s.meta[P.me]=ST.meta[P.me];}
+  ST=s;lastV=s.v;
+  if(P.me&&!metaOf(P.me).pinSet){P.me=null;P.pin=null;saveP();toast('הקוד שלך אופס בגיליון. בחר/י את השם שלך שוב.');}
+  if(conn!=='live'){conn='live';}
+  render();
+}
+function refresh(){return run('api_state').then(applyState).catch(e=>{const m=e&&e.message;conn=m==='no_backend'?'nobackend':m==='not_setup'?'notsetup':'error';renderStatus();});}
+
+/* ---------- derived stats ---------- */
+function base(k){
+  const d=new Set(doneOf(k));let main=0,opt=0,miss=0;
+  for(const m of M)if(d.has(m.i)){m.main?main++:opt++;if(m.missable)miss++;}
+  const next=M.find(m=>m.main&&!d.has(m.i));
+  const lastDoneMain=Math.max(-1,...M.filter(m=>m.main&&d.has(m.i)).map(m=>m.i));
+  const missed=MISSABLES.filter(m=>!d.has(m.i)&&m.i<lastDoneMain);
+  const chDone=CH.filter(c=>M.filter(m=>m.ch===c&&m.main).every(m=>d.has(m.i)));
+  const chAllOpt=CH.filter(c=>{const o=M.filter(m=>m.ch===c&&!m.main);return o.length&&o.every(m=>d.has(m.i))});
+  return{k,p:NAME[k],d,main,opt,miss,next,missed,chDone,chAllOpt,curCh:next?next.ch:6,frontier:next?next.i:M.length};
+}
+/* First Blood: for chapters 1-5, whoever finished it at the earliest recorded time (ties: list order). */
+function firstMap(){
+  const fm={};const bs=PLAYERS.map(p=>base(p.k));
+  for(let c=1;c<=5;c++){let best=null,bt=Infinity;
+    for(const b of bs){if(!b.chDone.includes(c))continue;const t=metaOf(b.k).chAt[c];const tt=typeof t==='number'?t:9e15;if(tt<bt){bt=tt;best=b.k;}}
+    if(best)fm[c]=best;}
+  return fm;
+}
+function stats(k,fm){
+  const s=base(k);fm=fm||firstMap();
+  s.firsts=Object.values(fm).filter(x=>x===k).length;
+  s.xp=s.main*XP.main+s.opt*XP.opt+s.miss*XP.miss+s.firsts*XP.first;
+  return s;
+}
+function ranked(){const fm=firstMap();return PLAYERS.map(p=>stats(p.k,fm)).sort((a,b)=>b.xp-a.xp||b.main-a.main);}
+function canSee(i){
+  if(!P.shield)return true;
+  if(P.peek.includes(i))return true;
+  if(!P.me)return i===0;
+  const s=base(P.me);return i<=s.frontier||s.d.has(i);
+}
+function eta(s){
+  if(!s.next)return'העלילה הושלמה';
+  if(!s.main)return'אין עדיין קצב, אין תחזית';
+  const days=Math.max(.75,(Date.now()-START)/864e5),rate=s.main/days,left=(TOTAL_MAIN-s.main)/rate,d=new Date(Date.now()+left*864e5);
+  return`קצב ${rate.toFixed(1)} ראשיות ליום · סיום צפוי ב-${d.getDate()}.${d.getMonth()+1}`;
+}
+function nextLabel(s){
+  if(!s.next)return'העלילה הושלמה';
+  if(s.k===P.me||canSee(s.next.i))return esc(s.next.name);
+  return`${chName(s.next.ch)} · משימה ${s.next.no}`;
+}
+
+/* ---------- renderers ---------- */
+function renderStatus(){
+  const el=document.getElementById('status');
+  let left;
+  if(conn==='loading')left='טוען את המרוץ…';
+  else if(conn==='nobackend')left='<span class="off">●</span> האפליקציה עוד לא מחוברת לגיליון: חסרה כתובת הסקריפט בקובץ config.js.';
+  else if(conn==='notsetup')left='<span class="off">●</span> הגיליון עוד לא הוכן: צריך להריץ פעם אחת את setup בעורך הסקריפט.';
+  else if(conn==='error')left='<span class="off">●</span> אין חיבור לגיליון כרגע. מנסים שוב אוטומטית.';
+  else left=`<span class="live">●</span> מחובר · מתעדכן לבד כל כמה שניות${P.me?` · מחובר/ת בתור <b>${NAME[P.me]}</b>`:' · בחר/י את השם שלך למעלה כדי לסמן משימות'}`;
+  el.innerHTML=`<span>${left}</span>${P.me?'<span class="acts"><button type="button" id="logout">התנתקות</button></span>':''}`;
+}
+function renderTop(){
+  document.getElementById('who').innerHTML=PLAYERS.map(p=>{
+    const taken=p.k!==P.me&&metaOf(p.k).pinSet;
+    return`<button type="button" style="--c:${p.c}" aria-pressed="${p.k===P.me}" data-p="${p.k}" class="${taken?'taken':''}" title="${taken?'יש לשם הזה קוד':''}"><span class="dot"></span>${p.n}</button>`;
+  }).join('');
+  const sh=document.getElementById('shield');sh.setAttribute('aria-pressed',P.shield);
+  sh.innerHTML=`${P.shield?LOCK:EYE} מגן ספוילרים ${P.shield?'פועל':'כבוי'}`;
+}
+function renderRoute(R){
+  const [a,b]=R;
+  document.getElementById('hl').textContent=!a.main?'הכביש פנוי':(a.main===b.main&&a.xp===b.xp?'תיקו בראש':`${a.p} בראש`);
+  const pct=Math.round(a.main/TOTAL_MAIN*100);
+  document.getElementById('hlsub').textContent=a.main?`${a.main-b.main} משימות ראשיות לפני ${b.p} · ${pct}% מהעלילה · ${fmt(a.xp)} XP`:'אף אחד עוד לא התחיל.';
+  const tr=document.getElementById('track');tr.querySelectorAll('.stop,.cargrp').forEach(n=>n.remove());
+  let before=0;const lead=a.main;
+  for(const c of CH){
+    if(c===0){before+=M.filter(m=>m.ch===0&&m.main).length;continue;}
+    const pos=before/TOTAL_MAIN*100;
+    tr.insertAdjacentHTML('beforeend',`<div class="stop ${lead>=before?'reached':''}" style="inset-inline-start:${pos}%"><i></i><span><span class="l">${chName(c)}</span><span class="s">${c}</span></span></div>`);
+    before+=M.filter(m=>m.ch===c&&m.main).length;
+  }
+  tr.insertAdjacentHTML('beforeend',`<div class="stop finish" style="inset-inline-start:100%"><i></i><span>סוף</span></div>`);
+  /* cars closer than ~90px share one spot so avatars and labels never overlap on a phone */
+  const near=Math.max(4,90/(tr.clientWidth||600)*100);
+  const groups=[];
+  for(const s of [...R].sort((x,y)=>x.main-y.main)){
+    const pos=s.main/TOTAL_MAIN*100;const g=groups.find(g=>pos-g.first<near);
+    g?g.list.push(s):groups.push({first:pos,list:[s]});
+  }
+  for(const g of groups){
+    const pos=g.list.reduce((a,s)=>a+s.main,0)/g.list.length/TOTAL_MAIN*100;
+    const same=g.list.every(s=>s.main===g.list[0].main);
+    const label=same?`${g.list.map(s=>s.p).join(', ')} · ${g.list[0].main}`:g.list.map(s=>`${s.p} ${s.main}`).join(' · ');
+    tr.insertAdjacentHTML('beforeend',`<div class="cargrp" style="inset-inline-start:${pos}%"><div class="cars">${g.list.map(s=>`<span class="car ${s.k===P.me?'me':''}" style="--c:${COLOR[s.k]}" title="${s.p}">${s.p[0]}</span>`).join('')}</div><small>${label}</small></div>`);
+  }
+}
+function renderBoard(R){
+  document.getElementById('board').innerHTML=R.map((s,ix)=>`
+  <article class="pc ${s.k===P.me?'me':''}" style="--c:${COLOR[s.k]}">
+    <div class="row1"><span class="nm">${s.p}${s.k===P.me?'<span class="youtag">את/ה</span>':''}</span><span class="rank">#${ix+1}</span></div>
+    <div class="xp num">${fmt(s.xp)}<small>XP</small></div>
+    <div class="bar" role="img" aria-label="${Math.round(s.main/TOTAL_MAIN*100)}% מהעלילה"><i style="width:${s.main/TOTAL_MAIN*100}%"></i></div>
+    <dl class="kv">
+      <dt>ראשיות</dt><dd class="num">${s.main}/${TOTAL_MAIN}</dd>
+      <dt>אופציונליות</dt><dd class="num">${s.opt}/${TOTAL_OPT}</dd>
+      <dt>עכשיו ב</dt><dd>${s.curCh>5?'סוף':chName(s.curCh)}</dd>
+      <dt>הבאה</dt><dd>${nextLabel(s)}</dd>
+      ${s.missed.length?`<dt>התראה</dt><dd><span class="pill bad">${s.missed.length===1?'משימה שאפשר לפספס לא סומנה':`${s.missed.length} משימות שאפשר לפספס לא סומנו`}</span></dd>`:''}
+    </dl>
+    <div class="eta">${eta(s)}</div>
+  </article>`).join('');
+}
+function renderMissions(){
+  const me=P.me?base(P.me):null;
+  document.getElementById('log-h').textContent=me?`יומן המשימות של ${me.p}`:'יומן המשימות';
+  document.getElementById('logsub').textContent=me?`${me.main+me.opt} מתוך ${M.length} בוצעו`:'בחר/י את השם שלך למעלה כדי לסמן';
+  document.getElementById('hideDone').setAttribute('aria-pressed',P.hideDone);
+  document.getElementById('onlyMain').setAttribute('aria-pressed',P.onlyMain);
+  const al=[];
+  if(me){
+    for(const m of me.missed)al.push(`<div class="alert bad"><b>לא סומנה:</b><span>${esc(m.name)} (${chName(m.ch)}) נעלמת אחרי שממשיכים בעלילה, ומשימות מאוחרות יותר כבר סומנו. אם עשית אותה, סמן/י אותה כאן.</span></div>`);
+    const upcoming=MISSABLES.find(m=>!me.d.has(m.i)&&!me.missed.includes(m)&&m.ch===me.curCh);
+    if(upcoming)al.push(`<div class="alert warn"><b>שים/י לב:</b><span>יש ב${chName(me.curCh)} משימה שנעלמת אם לא עושים אותה בזמן${canSee(upcoming.i)?`: ${esc(upcoming.name)}`:'. השם מוסתר עד שתגיע/י אליה'}.</span></div>`);
+  }
+  document.getElementById('alerts').innerHTML=al.join('');
+  const dset=me?me.d:new Set();const act=canAct();
+  document.getElementById('chapters').innerHTML=CH.map(c=>{
+    const list=M.filter(m=>m.ch===c);const mains=list.filter(m=>m.main);const dn=mains.filter(m=>dset.has(m.i)).length;
+    const open=P.open[c]??(c===Math.min(me?me.curCh:0,5));
+    const rows=list.filter(m=>!(P.hideDone&&dset.has(m.i))&&!(P.onlyMain&&!m.main)).map(m=>{
+      const vis=canSee(m.i),done=dset.has(m.i),cur=me&&me.next&&me.next.i===m.i;
+      const pills=[m.prot?`<span class="pill who-tag">${PROT[m.prot]}</span>`:'',!m.main?'<span class="pill">אופציונלית</span>':'',m.missable?`<span class="pill ${me&&me.missed.includes(m)?'bad':'warn'}">אפשר לפספס</span>`:'',cur?'<span class="pill warn">הבאה בתור</span>':''].join('');
+      const q=encodeURIComponent('GTA 6 '+m.name+' mission walkthrough');
+      return`<li class="m ${done?'done':''} ${m.main?'':'opt'} ${vis?'':'locked'} ${cur?'current':''}">
+        <input type="checkbox" id="m-${m.i}" data-i="${m.i}" ${done?'checked':''} ${act?'':'disabled'} aria-label="${vis?esc(m.name):'משימה מוסתרת'}">
+        <div class="body"><div class="title"><span class="n">${m.main?m.no:'·'}</span><label for="m-${m.i}" ${vis?'':'aria-hidden="true"'}>${vis?esc(m.name):'●●●●● ●●●● ●●●'}</label>${pills}</div>
+        <p class="desc" ${vis?'':'aria-hidden="true"'}>${vis?esc(m.desc):'This mission is hidden until you reach it.'}</p></div>
+        <div class="side">${vis?`<a href="https://www.google.com/search?q=${q}" target="_blank" rel="noopener">מדריך ↗</a>`:`<button class="peek" type="button" data-peek="${m.i}">${EYE} הצץ</button>`}</div>
+      </li>`}).join('');
+    return`<details class="chap" data-ch="${c}" ${open?'open':''}><summary><span class="t">${chName(c)}</span><span class="mini"><span class="bar" style="--c:var(--palm)"><i style="width:${dn/mains.length*100}%"></i></span></span><span class="cnt num">${dn}/${mains.length} ראשיות</span><span class="chev" aria-hidden="true">‹</span></summary><ul class="ms">${rows||'<li class="small" style="padding:6px 8px">אין משימות להצגה בסינון הזה.</li>'}</ul></details>`;
+  }).join('');
+}
+function ago(t){const m=Math.round((Date.now()-t)/6e4);if(m<1)return'עכשיו';if(m<60)return`לפני ${m} דק׳`;const h=Math.round(m/60);if(h<24)return`לפני ${h} שע׳`;return`לפני ${Math.round(h/24)} ימים`;}
+let seenTop=null;
+function renderFeed(){
+  const evs=[];for(const p of PLAYERS)for(const e of metaOf(p.k).events)evs.push({...e,who:p.k});
+  evs.sort((a,b)=>b.t-a.t);
+  const top=evs[0]?evs[0].t+evs[0].who:null;const isNew=seenTop!==null&&top!==seenTop;seenTop=top;
+  document.getElementById('feed').innerHTML=evs.length?evs.slice(0,30).map((e,ix)=>{
+    const who=NAME[e.who];let tx;
+    if(e.imp)tx=`<b>${who}</b>: ההתקדמות יובאה מהגיליון <em>(${e.main} ראשיות, ${e.opt} אופציונליות)</em>`;
+    else if(e.ch!=null)tx=e.first?`<b>${who}</b> סגר/ה ראשון/ה את ${chName(e.ch)} <span class="pill warn">First Blood</span>`:`<b>${who}</b> סגר/ה את ${chName(e.ch)}`;
+    else{const m=M[e.i];if(!m)return'';const vis=canSee(m.i);tx=`<b>${who}</b> <em>←</em> ${vis?esc(m.name):`משימה ב${chName(m.ch)} <em>(מוסתר)</em>`}${m.missable?' <span class="pill warn">אפשר לפספס</span>':''}`;}
+    return`<li class="ev ${isNew&&ix===0?'new':''}" style="--c:${COLOR[e.who]}"><span class="av">${who[0]}</span><span class="tx">${tx}<span class="tm">${ago(e.t)}</span></span><span class="gain">${e.xp?'+'+e.xp:''}</span></li>`;
+  }).join(''):'<li class="empty">עוד אין פעילות. הסימון הבא של מישהו יופיע כאן.</li>';
+}
+function renderRecap(R){
+  const [a,b]=R;const zeros=R.filter(s=>!s.main).map(s=>s.p);const lines=[];
+  if(a.main)lines.push(`<b>${a.p}</b> בראש עם ${fmt(a.xp)} XP ו-${a.main} משימות ראשיות. ${b.main?`${b.p} במקום השני, ${a.main-b.main} משימות מאחור.`:'אין עדיין מקום שני של ממש.'}`);
+  else lines.push('אף אחד עוד לא יצא לדרך. ליאונידה מחכה.');
+  if(zeros.length===1&&a.main)lines.push(`${zeros[0]}: אפס משימות. הפרולוג עדיין מחכה, ובליאונידה כבר שוקלים לפרסם מודעת נעדר.`);
+  if(zeros.length>1&&a.main)lines.push(`${zeros.slice(0,-1).join(', ')} ו${zeros.at(-1)}: אפס משימות ביחד. הפרולוג עדיין מחכה, ובליאונידה כבר שוקלים לפרסם מודעת נעדר.`);
+  const mis=R.filter(s=>s.missed.length);
+  if(mis.length)lines.push(`בתחקיר: ל${mis.map(s=>s.p).join(' ול')} יש משימה שאפשר לפספס שלא סומנה, למרות שהעלילה כבר המשיכה. או שזה פוספס, או שמישהו מתעצל לסמן.`);
+  if(a.next&&a.main)lines.push(`לפי הקצב הנוכחי: ${eta(a).split('· ')[1]||''} ל${a.p}.`);
+  document.getElementById('recap').innerHTML=lines.map(l=>`<p>${l}</p>`).join('');
+}
+function renderBets(R){
+  const ch=Math.min(Math.max(1,R[0].curCh),5);
+  document.getElementById('bet-h').innerHTML=`הימור: מי סוגר ראשון את ${chName(ch)}?`;
+  const end=Math.max(...M.filter(m=>m.ch===ch).map(m=>m.i));
+  const rem=R.map(s=>({s,r:M.filter(m=>m.main&&m.i<=end&&!s.d.has(m.i)).length}));
+  const w=rem.map(x=>1/Math.pow(x.r+2,2));const W=w.reduce((a,b)=>a+b,0);
+  const myPick=P.me?metaOf(P.me).picks[ch]:null;const act=canAct();
+  document.getElementById('bets').innerHTML=rem.map((x,k)=>{
+    const odds=Math.max(1.1,W/w[k]);const backers=PLAYERS.filter(p=>metaOf(p.k).picks[ch]===x.s.k).map(p=>p.k);
+    return`<div class="bet" style="--c:${COLOR[x.s.k]}"><span class="bn"><span class="dot"></span><span>${x.s.p} <small>· ${x.r?`נשארו ${x.r}`:'כבר סגר/ה'}</small></span></span>
+      <span class="backers">${backers.map(n=>`<i style="--c:${COLOR[n]}">${NAME[n]}</i>`).join('')}</span>
+      <span style="display:flex;gap:8px;align-items:center"><span class="odds">x${odds.toFixed(1)}</span><button type="button" data-bet="${x.s.k}" data-ch="${ch}" ${act?'':'disabled'} aria-pressed="${myPick===x.s.k}">${myPick===x.s.k?'ההימור שלך':'להמר'}</button></span></div>`;
+  }).join('');
+}
+function badges(k){
+  const s=stats(k);const opts=CH.map(c=>M.filter(m=>m.ch===c&&!m.main)).filter(l=>l.length);
+  const bestOpt=Math.max(...opts.map(l=>l.filter(m=>s.d.has(m.i)).length/l.length));
+  const leaderCh=Math.max(...PLAYERS.map(p=>base(p.k).curCh));
+  return[
+    {n:'צעד ראשון',d:'משימה ראשית אחת',on:s.main>=1,pr:`${Math.min(s.main,1)}/1`},
+    {n:'פרק סגור',d:'לסיים פרק שלם',on:s.chDone.some(c=>c>0),pr:`${s.chDone.filter(c=>c>0).length} פרקים`},
+    {n:'אספן',d:'כל האופציונליות בפרק',on:s.chAllOpt.length>0,pr:`${Math.round(bestOpt*100)}% בפרק הכי טוב`},
+    {n:'בלי פספוסים',d:'כל 5 המשימות שאפשר לפספס',on:s.miss===MISSABLES.length,pr:`${s.miss}/${MISSABLES.length}`},
+    {n:'First Blood',d:'ראשון לסגור פרק',on:s.firsts>0,pr:`${s.firsts} פעמים`},
+    {n:'Speedrunner',d:'5 משימות בביקור אחד',on:k===P.me&&session>=5,pr:k===P.me?`${Math.min(session,5)}/5 הביקור הזה`:'—'},
+    {n:'חצי דרך',d:'59 משימות ראשיות',on:s.main>=59,pr:`${s.main}/59`},
+    {n:'תקוע בפרולוג',d:'אפס משימות כשאחרים כבר בפרק 2',on:s.main===0&&leaderCh>=2,pr:s.main?'השתחררת':'עדיין כאן'},
+  ];
+}
+function renderBadges(){
+  const k=P.me;const h=document.getElementById('badge-h');const box=document.getElementById('badges');
+  if(!k){h.textContent='הישגים';box.innerHTML='<p class="empty">בחר/י את השם שלך כדי לראות את ההישגים שלך.</p>';return;}
+  h.textContent=`ההישגים של ${NAME[k]}`;
+  box.innerHTML=badges(k).map(b=>`<div class="bd ${b.on?'on':''}"><b>${b.n}</b><span>${b.d}</span><span class="num">${b.pr}</span></div>`).join('');
+}
+function render(){const R=ranked();renderStatus();renderTop();renderRoute(R);renderBoard(R);renderMissions();renderFeed();renderRecap(R);renderBets(R);renderBadges();}
+
+function toast(html){const t=document.createElement('div');t.className='toast';t.innerHTML=html;const box=document.getElementById('toasts');box.appendChild(t);setTimeout(()=>t.remove(),3200);while(box.children.length>3)box.firstChild.remove();}
+
+/* ---------- writing ---------- */
+function save(job){
+  pending++;
+  enqueue(()=>job().then(r=>{
+    if(r&&r.ok===false&&r.error==='bad_pin'){P.me=null;P.pin=null;saveP();toast('הקוד לא תקין. בחר/י את השם שלך שוב.');}
+    pending--;if(r&&r.state)applyState(r.state);
+  }).catch(()=>{pending--;toast('השמירה לא הצליחה. בודקים מול הגיליון…');refresh();}));
+}
+function toggle(i,on){
+  if(!canAct())return;
+  const k=P.me,pin=P.pin,fmBefore=firstMap(),before=stats(k,fmBefore),bBefore=badges(k).filter(b=>b.on).map(b=>b.n);
+  const meta=clone(metaOf(k));delete meta.pinSet;
+  const set=new Set(doneOf(k));on?set.add(i):set.delete(i);
+  ST.done[k]=[...set].sort((a,b)=>a-b);ST.meta[k]={...meta,pinSet:true};
+  const now=Date.now();
+  if(on){
+    const m=M[i],gain=(m.main?XP.main:XP.opt)+(m.missable?XP.miss:0);session++;
+    meta.events.unshift({i,xp:gain,t:now});
+    toast(`<b>+${gain} XP</b> · ${esc(m.name)}`);
+    const after=base(k);
+    for(const c of after.chDone)if(!before.chDone.includes(c)){
+      if(c>0)meta.chAt[c]=now;
+      ST.meta[k]={...meta,pinSet:true};
+      const first=c>0&&firstMap()[c]===k;
+      meta.events.unshift({ch:c,first:first?1:0,xp:first?XP.first:0,t:now});
+      toast(first?`<b>+300 XP</b> · First Blood: ${NAME[k]} סגר/ה ראשון/ה את ${chName(c)}`:`${chName(c)} הושלם`);
+    }
+  }else{
+    session=Math.max(0,session-1);
+    const after=base(k);const lost=before.chDone.filter(c=>!after.chDone.includes(c));
+    meta.events=meta.events.filter(e=>!(e.i===i||(e.ch!=null&&lost.includes(e.ch))));
+    for(const c of lost)delete meta.chAt[c];
+  }
+  meta.events=meta.events.slice(0,40);
+  ST.meta[k]={...meta,pinSet:true};
+  if(on)badges(k).filter(b=>b.on&&!bBefore.includes(b.n)).forEach(b=>toast(`הישג חדש: <b>${b.n}</b>`));
+  render();
+  save(()=>run('api_toggle',k,pin,i,on,meta));
+}
+function bet(target,ch){
+  if(!canAct())return;
+  const k=P.me,meta=clone(metaOf(k));delete meta.pinSet;
+  meta.picks[ch]=target;ST.meta[k]={...meta,pinSet:true};render();
+  toast(`${NAME[k]} הימר/ה על <b>${NAME[target]}</b>`);
+  save(()=>run('api_meta',k,P.pin,meta));
+}
+
+/* ---------- sign-in dialog ---------- */
+function openDlg(k){
+  dlgFor=k;const set=metaOf(k).pinSet;
+  document.getElementById('dlgTitle').textContent=`את/ה ${NAME[k]}?`;
+  document.getElementById('dlgText').textContent=set?`הקלד/י את הקוד בן 4 הספרות של ${NAME[k]}.`:`בחר/י קוד בן 4 ספרות. הוא שומר שרק את/ה תסמן/י משימות בשם ${NAME[k]}, ותצטרך/י אותו בכל מכשיר חדש.`;
+  document.getElementById('dlgOk').textContent=set?'כניסה':'שמירת קוד';
+  document.getElementById('dlgErr').textContent='';
+  const pin=document.getElementById('pin');pin.value='';
+  document.getElementById('dlg').hidden=false;setTimeout(()=>pin.focus(),30);
+}
+function closeDlg(){document.getElementById('dlg').hidden=true;dlgFor=null;}
+document.getElementById('dlgForm').addEventListener('submit',e=>{
+  e.preventDefault();
+  const pin=document.getElementById('pin').value.trim(),err=document.getElementById('dlgErr'),ok=document.getElementById('dlgOk');
+  if(!/^\d{4}$/.test(pin)){err.textContent='הקוד צריך להיות 4 ספרות.';return;}
+  const k=dlgFor;ok.disabled=true;
+  run('api_claim',k,pin).then(r=>{
+    ok.disabled=false;
+    if(r.ok){P.me=k;P.pin=pin;P.open={};saveP();session=0;closeDlg();applyState(r.state);toast(r.created?`הקוד נשמר. ברוך/ה הבא/ה, ${NAME[k]}`:`ברוך/ה הבא/ה, ${NAME[k]}`);}
+    else{err.textContent=r.error==='too_many'?'יותר מדי ניסיונות. נסה/י שוב בעוד 10 דקות.':'הקוד לא נכון. נסה/י שוב.';applyState(r.state);}
+  }).catch(()=>{ok.disabled=false;err.textContent='אין חיבור לגיליון כרגע. נסה/י שוב בעוד רגע.';});
+});
+document.getElementById('dlgCancel').addEventListener('click',closeDlg);
+document.getElementById('dlg').addEventListener('click',e=>{if(e.target.id==='dlg')closeDlg();});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!document.getElementById('dlg').hidden)closeDlg();});
+
+/* ---------- events ---------- */
+document.addEventListener('change',e=>{const t=e.target;if(t.matches('.m input[data-i]'))toggle(+t.dataset.i,t.checked);});
+document.addEventListener('click',e=>{
+  const w=e.target.closest('#who button');if(w){const k=w.dataset.p;if(k===P.me)return;if(conn!=='live'){toast('מחכים לחיבור לגיליון…');return;}openDlg(k);return;}
+  if(e.target.closest('#logout')){P.me=null;P.pin=null;saveP();render();return;}
+  if(e.target.closest('#shield')){P.shield=!P.shield;saveP();render();return;}
+  if(e.target.closest('#hideDone')){P.hideDone=!P.hideDone;saveP();renderMissions();return;}
+  if(e.target.closest('#onlyMain')){P.onlyMain=!P.onlyMain;saveP();renderMissions();return;}
+  const pk=e.target.closest('[data-peek]');if(pk){P.peek.push(+pk.dataset.peek);saveP();renderMissions();renderFeed();return;}
+  const bt=e.target.closest('[data-bet]');if(bt){bet(bt.dataset.bet,+bt.dataset.ch);return;}
+});
+document.addEventListener('toggle',e=>{const d=e.target;if(d.matches&&d.matches('details.chap')){P.open[d.dataset.ch]=d.open;saveP();}},true);
+
+/* ---------- install as an app (no app store) ---------- */
+const SHARE_ICON='<svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M8 1 5 4h2v6h2V4h2L8 1ZM3 7h2v6h6V7h2v8H3V7Z"/></svg>';
+const standalone=window.matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
+const isIOS=/iphone|ipad|ipod/i.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+let installEvt=null;
+function hideInstall(){P.noInstall=true;saveP();document.getElementById('install').hidden=true;}
+function showInstall(){
+  if(standalone||P.noInstall)return;
+  const box=document.getElementById('install');
+  if(installEvt)box.innerHTML='<span><b>להתקין כאפליקציה?</b> אייקון במסך הבית, מסך מלא, בלי חנות.</span><span style="display:flex;gap:12px;align-items:center"><button class="btn" type="button" id="doInstall">התקנה</button><button class="x" type="button" id="noInstall">לא עכשיו</button></span>';
+  else if(isIOS)box.innerHTML=`<span><b>להתקנה באייפון:</b> ב-Safari לוחצים על כפתור השיתוף ${SHARE_ICON} ואז על „הוספה למסך הבית”.</span><button class="x" type="button" id="noInstall">הבנתי</button>`;
+  else return;
+  box.hidden=false;
+}
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();installEvt=e;showInstall();});
+window.addEventListener('appinstalled',()=>{installEvt=null;hideInstall();toast('האפליקציה הותקנה');});
+document.addEventListener('click',e=>{
+  if(e.target.closest('#noInstall')){hideInstall();return;}
+  if(e.target.closest('#doInstall')&&installEvt){installEvt.prompt();installEvt.userChoice.finally(()=>{installEvt=null;document.getElementById('install').hidden=true;});}
+});
+if('serviceWorker' in navigator&&location.protocol!=='file:')navigator.serviceWorker.register('sw.js').catch(()=>{});
+
+/* ---------- start + live updates ---------- */
+render();
+refresh();
+showInstall();
+setTimeout(()=>{if(conn==='loading'){conn='error';renderStatus();}},12000);
+const idle=()=>document.hidden||conn==='nobackend'||conn==='notsetup';
+setInterval(()=>{
+  if(idle())return;
+  run('api_version').then(v=>{if(v!==lastV||conn!=='live')refresh();}).catch(()=>{conn='error';renderStatus();});
+},5000);
+setInterval(()=>{if(!idle()&&pending===0)refresh();},30000);
+setInterval(renderFeed,60000);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&conn!=='nobackend')refresh();});
+</script>
+</body>
+</html>
