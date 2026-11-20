@@ -1,6 +1,6 @@
 // Makes the app installable and lets it open instantly / offline. Always asks the server first
 // (revalidating past the browser cache), so a new version shows up right away. Calls to the Google Sheet are never cached.
-const CACHE = 'leonida-hq-v10';
+const CACHE = 'leonida-hq-v11';
 const SHELL = ['./', './index.html', './config.js', './manifest.webmanifest', './icon-192.png', './icon-512.png', './apple-touch-icon.png'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL))); self.skipWaiting(); });
 self.addEventListener('activate', e => {

@@ -624,8 +624,7 @@ function eta(s){
 }
 function nextLabel(s){
   if(!s.next)return'העלילה הושלמה';
-  if(s.k===P.me||canSee(s.next.i))return esc(s.next.name);
-  return`<span dir="ltr">${chEn(s.next.ch)} · Mission ${s.next.no}</span>`;
+  return`<span dir="ltr">${chEn(s.next.ch)} · Mission ${s.next.no} · <b>${esc(s.next.name)}</b></span>`;
 }
 
 /* ---------- renderers ---------- */
@@ -728,7 +727,6 @@ function renderBoard(R){
     </dl>
     <div class="sum"><span><b>${s.main}</b>/${TOTAL_MAIN} ראשיות</span><span><b>${s.opt}</b>/${TOTAL_OPT} אופציונליות</span><span>${s.curCh>5?'סוף':chName(s.curCh)}</span></div>
     <div class="nextline"><span class="lbl">הבאה:</span> ${nextLabel(s)}</div>
-    ${missLine(s)}
     <div class="eta">${eta(s)}</div>
   </article>`).join('');
 }
