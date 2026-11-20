@@ -214,6 +214,13 @@ footer{margin:36px 0 40px;color:var(--faint);font-size:12px}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 html,body{margin:0}
 :root{--sky:#5CC2FF}
+/* the mission list is English, so it reads left to right inside the Hebrew app */
+#chapters,.mtools{direction:ltr}
+#chapters .m .desc{text-align:left}
+#chapters details.chap summary .t{font-size:22px;letter-spacing:.02em;min-width:5.2em}
+#chapters details.chap[open] summary .chev{transform:rotate(-90deg)}
+#chapters details.chap summary .chev{transform:rotate(180deg)}
+#chapters .m.current{box-shadow:inset 3px 0 0 var(--mango)}
 /* progress bars: always a block with a visible track, so the empty part reads as 'still to go' */
 .bar{display:block;background:color-mix(in srgb,var(--ink) 13%,transparent);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--ink) 6%,transparent)}
 .bar i{min-width:0}
@@ -453,8 +460,8 @@ body{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset
       <section class="panel" data-tab="missions" aria-labelledby="log-h">
         <div class="sec-head"><h2 id="log-h"></h2><p id="logsub"></p></div>
         <div class="mtools">
-          <button class="chip" id="hideDone" type="button" aria-pressed="false">הסתר משימות שבוצעו</button>
-          <button class="chip" id="onlyMain" type="button" aria-pressed="false">רק ראשיות</button>
+          <button class="chip" id="hideDone" type="button" aria-pressed="false">Hide completed</button>
+          <button class="chip" id="onlyMain" type="button" aria-pressed="false">Main only</button>
         </div>
         <div class="alerts" id="alerts"></div>
         <div id="chapters"></div>
@@ -512,7 +519,8 @@ const API = String(window.LEONIDA_API || '').trim();
 const PLAYERS=[{k:'ido',n:'עידן',c:'var(--coral)'},{k:'tal',n:'טל',c:'var(--mango)'},{k:'amit',n:'עמית',c:'var(--palm)'},{k:'tomer',n:'תומר',c:'var(--lilac)'},{k:'itai',n:'איתי',c:'var(--sky)'}];
 const NAME=Object.fromEntries(PLAYERS.map(p=>[p.k,p.n]));
 const COLOR=Object.fromEntries(PLAYERS.map(p=>[p.k,p.c]));
-const PROT={J:"ג'ייסון",L:'לוסיה',B:'שניהם'};
+const PROT={J:'Jason',L:'Lucia',B:'Jason & Lucia'};
+const chEn=c=>c===0?'Prologue':'Chapter '+c;
 const M=RAW.map((r,i)=>({i,ch:r[0],name:r[1],main:!!r[2],missable:!!r[3],prot:r[4],desc:r[5]}));
 const CH=[...new Set(M.map(m=>m.ch))];
 {const mk={};let no=0;for(const m of M){if(m.main){m.no=++no;mk[m.ch]=(mk[m.ch]||0)+1;m.mk=mk[m.ch];}}}
@@ -615,7 +623,7 @@ function eta(s){
 function nextLabel(s){
   if(!s.next)return'העלילה הושלמה';
   if(s.k===P.me||canSee(s.next.i))return esc(s.next.name);
-  return`${chName(s.next.ch)} · משימה ${s.next.no}`;
+  return`<span dir="ltr">${chEn(s.next.ch)} · Mission ${s.next.no}</span>`;
 }
 
 /* ---------- renderers ---------- */
@@ -733,15 +741,15 @@ function renderMissions(){
     const open=P.open[c]??(c===Math.min(me?me.curCh:0,5));
     const rows=list.filter(m=>!(P.hideDone&&dset.has(m.i))&&!(P.onlyMain&&!m.main)).map(m=>{
       const vis=canSee(m.i),done=dset.has(m.i),cur=me&&me.next&&me.next.i===m.i;
-      const pills=[m.prot?`<span class="pill who-tag">${PROT[m.prot]}</span>`:'',!m.main?'<span class="pill">אופציונלית</span>':'',m.missable?`<span class="pill ${me&&me.missed.includes(m)?'bad':'warn'}">אפשר לפספס</span>`:'',cur?'<span class="pill warn">הבאה בתור</span>':''].join('');
+      const pills=[m.prot?`<span class="pill who-tag">${PROT[m.prot]}</span>`:'',!m.main?'<span class="pill">Optional</span>':'',m.missable?`<span class="pill ${me&&me.missed.includes(m)?'bad':'warn'}">${me&&me.missed.includes(m)?'Missed?':'Missable'}</span>`:'',cur?'<span class="pill warn">Next up</span>':''].join('');
       const q=encodeURIComponent('GTA 6 '+m.name+' mission walkthrough');
       return`<li class="m ${done?'done':''} ${m.main?'':'opt'} ${vis?'':'locked'} ${cur?'current':''}">
-        <input type="checkbox" id="m-${m.i}" data-i="${m.i}" ${done?'checked':''} ${act?'':'disabled'} aria-label="${vis?esc(m.name):'משימה מוסתרת'}">
+        <input type="checkbox" id="m-${m.i}" data-i="${m.i}" ${done?'checked':''} ${act?'':'disabled'} aria-label="${vis?esc(m.name):'Hidden mission'}">
         <div class="body"><div class="title"><span class="n">${m.main?m.no:'·'}</span><label for="m-${m.i}" ${vis?'':'aria-hidden="true"'}>${vis?esc(m.name):'●●●●● ●●●● ●●●'}</label>${pills}</div>
         <p class="desc" ${vis?'':'aria-hidden="true"'}>${vis?esc(m.desc):'This mission is hidden until you reach it.'}</p></div>
-        <div class="side">${vis?`<a href="https://www.google.com/search?q=${q}" target="_blank" rel="noopener">מדריך ↗</a>`:`<button class="peek" type="button" data-peek="${m.i}">${EYE} הצץ</button>`}</div>
+        <div class="side">${vis?`<a href="https://www.google.com/search?q=${q}" target="_blank" rel="noopener">Guide ↗</a>`:`<button class="peek" type="button" data-peek="${m.i}">${EYE} Peek</button>`}</div>
       </li>`}).join('');
-    return`<details class="chap ${mains.length&&dn===mains.length?'full':''}" data-ch="${c}" ${open?'open':''}><summary><span class="t">${chName(c)}</span><span class="mini"><span class="bar" style="--c:var(--palm)"><i style="width:${dn/mains.length*100}%"></i></span></span><span class="cnt num">${dn}/${mains.length} ראשיות</span><span class="chev" aria-hidden="true">‹</span></summary><ul class="ms">${rows||'<li class="small" style="padding:6px 8px">אין משימות להצגה בסינון הזה.</li>'}</ul></details>`;
+    return`<details class="chap ${mains.length&&dn===mains.length?'full':''}" data-ch="${c}" ${open?'open':''}><summary><span class="t">${chEn(c)}</span><span class="mini"><span class="bar" style="--c:var(--palm)"><i style="width:${dn/mains.length*100}%"></i></span></span><span class="cnt num">${dn}/${mains.length} main</span><span class="chev" aria-hidden="true">‹</span></summary><ul class="ms">${rows||'<li class="small" style="padding:6px 8px">No missions match this filter.</li>'}</ul></details>`;
   }).join('');
 }
 function ago(t){const m=Math.round((Date.now()-t)/6e4);if(m<1)return'עכשיו';if(m<60)return`לפני ${m} דק׳`;const h=Math.round(m/60);if(h<24)return`לפני ${h} שע׳`;return`לפני ${Math.round(h/24)} ימים`;}
@@ -756,7 +764,7 @@ function renderFeed(){
     const who=NAME[e.who];let tx;
     if(e.imp)tx=`<b>${who}</b>: ההתקדמות יובאה מהגיליון <em>(${e.main} ראשיות, ${e.opt} אופציונליות)</em>`;
     else if(e.ch!=null)tx=e.first?`<b>${who}</b> סגר/ה ראשון/ה את ${chName(e.ch)} <span class="pill warn">First Blood</span>`:`<b>${who}</b> סגר/ה את ${chName(e.ch)}`;
-    else{const m=M[e.i];if(!m)return'';const vis=canSee(m.i);tx=`<b>${who}</b> <em>←</em> ${vis?esc(m.name):`משימה ב${chName(m.ch)} <em>(מוסתר)</em>`}${m.missable?' <span class="pill warn">אפשר לפספס</span>':''}`;}
+    else{const m=M[e.i];if(!m)return'';const vis=canSee(m.i);tx=`<b>${who}</b> <em>←</em> ${vis?esc(m.name):`<span dir="ltr">Hidden mission · ${chEn(m.ch)}</span>`}${m.missable?' <span class="pill warn">Missable</span>':''}`;}
     return`<li class="ev ${isNew&&ix===0?'new':''}" style="--c:${COLOR[e.who]}"><span class="av">${who[0]}</span><span class="tx">${tx}<span class="tm">${ago(e.t)}</span></span><span class="gain">${e.xp?'+'+e.xp:''}</span></li>`;
   }).join(''):'<li class="empty">עוד אין פעילות. הסימון הבא של מישהו יופיע כאן.</li>';
 }
