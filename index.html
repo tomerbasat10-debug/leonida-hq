@@ -218,6 +218,78 @@ body{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset
 .install b{color:var(--mango)}
 .install .x{background:none;border:0;color:var(--muted);font-size:13px;text-decoration:underline;padding:0}
 .install svg{width:16px;height:16px;vertical-align:-3px}
+.mebtn{display:none;align-items:center;gap:7px;border:1px solid var(--line);background:var(--panel);border-radius:999px;padding:6px 13px;font-size:14px;font-weight:500}
+.mebtn .dot{width:9px;height:9px;border-radius:50%;background:var(--c,var(--muted))}
+.mebtn.me{border-color:var(--c);color:var(--c)}
+.picks{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.picks button{border:1px solid var(--line);background:var(--panel-2);border-radius:12px;padding:14px 12px;font-size:19px;font-weight:700;color:var(--c);display:flex;flex-direction:column;align-items:flex-start;gap:3px;text-align:start}
+.picks button small{font-size:12px;color:var(--muted);font-weight:400}
+.picks button[aria-current="true"]{border-color:var(--c);box-shadow:inset 0 0 0 1px var(--c)}
+.alert .btn{margin-inline-start:auto;flex:none}
+.tabbar{display:none}
+.legend{display:none}
+.toast b,.ev .gain,.pc .xp{direction:ltr;unicode-bidi:isolate}
+
+/* ---------- phone: a real app layout ---------- */
+@media (max-width:760px){
+  .top .wrap{flex-wrap:nowrap;padding-block:8px;gap:10px}
+  .brand b{font-size:27px}
+  .brand small,.controls .lbl,.who{display:none}
+  .controls{flex-wrap:nowrap;gap:6px}
+  .mebtn{display:inline-flex}
+  .shield .t{display:none}
+  .shield{padding:7px 9px}
+  .shield svg{width:16px;height:16px}
+
+  .note{margin-top:10px;padding:7px 10px;font-size:12px;border-style:solid}
+  .route{margin-top:10px}
+  .sky{min-height:150px;padding:16px 16px 0}
+  .headline{padding-bottom:16px}
+  .headline h1{font-size:50px}
+  .sun{inset-inline-end:-20px}
+  .road{height:112px}
+  .lane{top:62px}
+  .stop{top:46px}
+  .cargrp{top:10px}
+  .cargrp small{display:none}
+  .legend{display:flex;flex-wrap:wrap;gap:6px 14px;padding:10px 14px 12px;background:var(--asphalt);border-top:1px solid var(--line);font-size:13px}
+  .legend span{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+  .legend i{width:9px;height:9px;border-radius:50%;background:var(--c)}
+  .legend b{font-family:var(--f-mono);font-weight:600}
+  .sec,.cols.sec{margin-top:16px}
+  h2{font-size:30px}
+  .sec-head{margin-bottom:8px}
+  .panel{padding:14px 12px}
+
+  /* leaderboard: compact ranked rows instead of four tall cards */
+  .board{grid-template-columns:minmax(0,1fr);gap:8px}
+  .pc{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:6px 10px;padding:12px 14px}
+  .pc .row1{display:contents}
+  .pc .rank{grid-column:1;grid-row:1;font-size:14px}
+  .pc .nm{grid-column:2;grid-row:1;font-size:17px}
+  .pc .xp{grid-column:3;grid-row:1;font-family:var(--f-body);font-weight:700;font-size:22px;line-height:1}
+  .pc .bar{grid-column:1/-1;grid-row:2;height:6px}
+  .pc .kv{grid-column:1/-1;grid-row:3;grid-template-columns:auto minmax(0,1fr) auto minmax(0,1fr);gap:3px 8px;font-size:12.5px}
+  .pc .eta{grid-column:1/-1;grid-row:4;padding-top:6px;font-size:11.5px}
+
+  /* bottom tab bar */
+  .tabbar{display:grid;grid-template-columns:repeat(4,1fr);position:fixed;inset:auto 0 0 0;z-index:8;background:color-mix(in srgb,var(--panel) 95%,transparent);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-top:1px solid var(--line);
+    padding:6px max(8px,env(safe-area-inset-right,0px)) calc(6px + env(safe-area-inset-bottom,0px)) max(8px,env(safe-area-inset-left,0px))}
+  .tabbar button{background:none;border:0;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11.5px;color:var(--muted);padding:6px 0;border-radius:12px;position:relative}
+  .tabbar button svg{width:23px;height:23px}
+  .tabbar button[aria-current="page"]{color:var(--mango)}
+  .tabbar button[aria-current="page"]::before{content:"";position:absolute;top:-7px;width:28px;height:3px;border-radius:0 0 3px 3px;background:var(--mango)}
+  .tabbar .badge{position:absolute;top:2px;inset-inline-start:calc(50% + 6px);min-width:16px;height:16px;border-radius:8px;background:var(--coral);color:var(--night);font-size:10px;font-weight:700;display:grid;place-items:center;padding:0 4px}
+  main.wrap{padding-bottom:calc(90px + env(safe-area-inset-bottom,0px))}
+  .toasts{padding-bottom:calc(84px + env(safe-area-inset-bottom,0px))}
+  footer{display:none}
+  body.t-race [data-tab]:not([data-tab="race"]),
+  body.t-missions [data-tab]:not([data-tab="missions"]),
+  body.t-feed [data-tab]:not([data-tab="feed"]),
+  body.t-me [data-tab]:not([data-tab="me"]){display:none}
+  .feed{max-height:none}
+  .badges{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
 [hidden]{display:none!important}
 .note .live{color:var(--palm)}
 .note .off{color:var(--coral)}
@@ -244,6 +316,7 @@ body{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset
       <div class="controls">
         <span class="lbl">אני:</span>
         <div class="who" id="who" role="group" aria-label="בחירת שחקן"></div>
+        <button class="mebtn" id="meBtn" type="button"></button>
         <button class="shield" id="shield" aria-pressed="true" type="button"></button>
       </div>
     </div>
@@ -253,7 +326,7 @@ body{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset
     <div class="note" id="status" role="status"><span>טוען את המרוץ…</span></div>
     <div class="install" id="install" hidden></div>
 
-    <section class="route" aria-label="מסלול ההתקדמות של כולם">
+    <section class="route" data-tab="race" aria-label="מסלול ההתקדמות של כולם">
       <div class="sky">
         <svg class="palm" style="inset-inline-start:46%" viewBox="0 0 120 170" aria-hidden="true"><path d="M62 170 C60 130 58 95 64 58" stroke="#1A1428" stroke-width="6" fill="none"/><path d="M64 58 C40 40 18 44 4 58 C24 46 44 48 64 60 Z M64 58 C84 34 106 36 118 50 C98 42 82 46 64 60 Z M64 58 C58 30 40 14 20 12 C42 22 54 38 63 60 Z M64 58 C76 28 92 16 110 18 C92 26 78 40 65 60 Z M64 58 C52 62 34 80 30 98 C42 80 52 70 65 60 Z" fill="#1A1428"/></svg>
         <svg class="palm" style="inset-inline-start:58%;width:90px;height:130px" viewBox="0 0 120 170" aria-hidden="true"><path d="M58 170 C62 130 66 95 60 58" stroke="#1A1428" stroke-width="6" fill="none"/><path d="M60 58 C40 40 18 44 4 58 C24 46 44 48 60 60 Z M60 58 C84 34 106 36 118 50 C98 42 82 46 60 60 Z M60 58 C58 30 40 14 20 12 C42 22 54 38 59 60 Z M60 58 C76 28 92 16 110 18 C92 26 78 40 61 60 Z" fill="#1A1428"/></svg>
@@ -265,15 +338,16 @@ body{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset
         </div>
       </div>
       <div class="road"><div class="track" id="track"><div class="lane"></div></div></div>
+      <div class="legend" id="legend"></div>
     </section>
 
-    <section class="sec" aria-labelledby="board-h">
+    <section class="sec" data-tab="race" aria-labelledby="board-h">
       <div class="sec-head"><h2 id="board-h">טבלת המובילים</h2><p>ראשית 100 · אופציונלית 50 · שאפשר לפספס +100 · ראשון לסגור פרק (1–5) +300</p></div>
       <div class="board" id="board"></div>
     </section>
 
     <div class="cols sec">
-      <section class="panel" aria-labelledby="log-h">
+      <section class="panel" data-tab="missions" aria-labelledby="log-h">
         <div class="sec-head"><h2 id="log-h"></h2><p id="logsub"></p></div>
         <div class="mtools">
           <button class="chip" id="hideDone" type="button" aria-pressed="false">הסתר משימות שבוצעו</button>
@@ -284,21 +358,21 @@ body{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset
       </section>
 
       <aside class="rail">
-        <section class="panel" aria-labelledby="feed-h">
+        <section class="panel" data-tab="feed" aria-labelledby="feed-h">
           <h3 id="feed-h">פיד חי</h3>
           <ul class="feed" id="feed"></ul>
         </section>
-        <section class="panel recap" aria-labelledby="recap-h">
+        <section class="panel recap" data-tab="feed" aria-labelledby="recap-h">
           <h3 id="recap-h">המהדורה מליאונידה</h3>
           <div id="recap"></div>
           <p class="by">נכתב אוטומטית מהנתונים, ומתעדכן עם כל סימון.</p>
         </section>
-        <section class="panel" aria-labelledby="bet-h">
+        <section class="panel" data-tab="feed" aria-labelledby="bet-h">
           <h3 id="bet-h"></h3>
           <div id="bets"></div>
           <p class="small">כל הימור שווה 100 נקודות הימור, בנפרד מה-XP. היחס מחושב לפי כמה משימות ראשיות נשארו לכל אחד עד סוף הפרק.</p>
         </section>
-        <section class="panel" aria-labelledby="badge-h">
+        <section class="panel" data-tab="me" aria-labelledby="badge-h">
           <h3 id="badge-h"></h3>
           <div class="badges" id="badges"></div>
         </section>
@@ -317,6 +391,15 @@ body{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset
       <div class="row"><button class="btn" id="dlgOk" type="submit">כניסה</button><button class="btn ghost" id="dlgCancel" type="button">ביטול</button></div>
     </form>
   </div>
+  <div class="overlay" id="pick" hidden>
+    <div class="dlg" role="dialog" aria-labelledby="pickTitle">
+      <h3 id="pickTitle">מי את/ה?</h3>
+      <p>בוחרים שם פעם אחת בכל מכשיר. בפעם הראשונה בוחרים גם קוד בן 4 ספרות.</p>
+      <div class="picks" id="pickList"></div>
+      <div class="row"><button class="btn ghost" id="pickCancel" type="button">סגירה</button></div>
+    </div>
+  </div>
+  <nav class="tabbar" id="tabbar" aria-label="מסכים"></nav>
   <div class="toasts" id="toasts" aria-live="polite"></div>
 </div>
 
@@ -448,9 +531,34 @@ function renderTop(){
     const taken=p.k!==P.me&&metaOf(p.k).pinSet;
     return`<button type="button" style="--c:${p.c}" aria-pressed="${p.k===P.me}" data-p="${p.k}" class="${taken?'taken':''}" title="${taken?'יש לשם הזה קוד':''}"><span class="dot"></span>${p.n}</button>`;
   }).join('');
+  const mb=document.getElementById('meBtn');
+  mb.className='mebtn'+(P.me?' me':'');mb.style.setProperty('--c',P.me?COLOR[P.me]:'var(--muted)');
+  mb.innerHTML=`<span class="dot"></span>${P.me?NAME[P.me]:'מי את/ה?'}`;
   const sh=document.getElementById('shield');sh.setAttribute('aria-pressed',P.shield);
-  sh.innerHTML=`${P.shield?LOCK:EYE} מגן ספוילרים ${P.shield?'פועל':'כבוי'}`;
+  sh.setAttribute('aria-label',`מגן ספוילרים ${P.shield?'פועל':'כבוי'}`);
+  sh.innerHTML=`${P.shield?LOCK:EYE} <span class="t">מגן ספוילרים ${P.shield?'פועל':'כבוי'}</span>`;
 }
+/* ---------- phone tabs ---------- */
+const TABS=[
+  {k:'race',n:'מרוץ',i:'<path fill="currentColor" d="M5 3h2v18H5V3Zm3 1h11l-2.5 4L19 12H8V4Z"/>'},
+  {k:'missions',n:'משימות',i:'<path fill="currentColor" d="M4 5h3v3H4V5Zm5 .5h11v2H9v-2ZM4 10.5h3v3H4v-3Zm5 .5h11v2H9v-2ZM4 16h3v3H4v-3Zm5 .5h11v2H9v-2Z"/>'},
+  {k:'feed',n:'פיד',i:'<path fill="currentColor" d="M13 2 4 14h6l-1 8 9-12h-6l1-8Z"/>'},
+  {k:'me',n:'הישגים',i:'<path fill="currentColor" d="M7 3h10v2h3v3a4 4 0 0 1-4 4h-.3A5 5 0 0 1 13 14.9V17h3v2H8v-2h3v-2.1A5 5 0 0 1 8.3 12H8a4 4 0 0 1-4-4V5h3V3Zm0 4H6v1a2 2 0 0 0 1 1.7V7Zm10 0v2.7A2 2 0 0 0 18 8V7h-1Z"/>'},
+];
+let unseen=0;
+function renderTabs(){
+  const t=TABS.some(x=>x.k===P.tab)?P.tab:'race';
+  document.body.classList.remove(...TABS.map(x=>'t-'+x.k));document.body.classList.add('t-'+t);
+  document.getElementById('tabbar').innerHTML=TABS.map(x=>`<button type="button" data-go="${x.k}" ${x.k===t?'aria-current="page"':''}><svg viewBox="0 0 24 24" aria-hidden="true">${x.i}</svg>${x.n}${x.k==='feed'&&unseen&&t!=='feed'?`<span class="badge">${unseen}</span>`:''}</button>`).join('');
+}
+function openPick(){
+  document.getElementById('pickList').innerHTML=PLAYERS.map(p=>{
+    const mine=p.k===P.me,set=metaOf(p.k).pinSet;
+    return`<button type="button" data-pick="${p.k}" style="--c:${p.c}" aria-current="${mine}">${p.n}<small>${mine?'זה/ו את/ה':set?'יש קוד · כניסה עם קוד':'פנוי · בוחרים קוד'}</small></button>`;
+  }).join('')+(P.me?'<button type="button" data-pick="" style="--c:var(--muted);grid-column:1/-1;font-size:15px">התנתקות מהמכשיר הזה</button>':'');
+  document.getElementById('pick').hidden=false;
+}
+function closePick(){document.getElementById('pick').hidden=true;}
 function renderRoute(R){
   const [a,b]=R;
   document.getElementById('hl').textContent=!a.main?'הכביש פנוי':(a.main===b.main&&a.xp===b.xp?'תיקו בראש':`${a.p} בראש`);
@@ -466,7 +574,9 @@ function renderRoute(R){
   }
   tr.insertAdjacentHTML('beforeend',`<div class="stop finish" style="inset-inline-start:100%"><i></i><span>סוף</span></div>`);
   /* cars closer than ~90px share one spot so avatars and labels never overlap on a phone */
-  const near=Math.max(4,90/(tr.clientWidth||600)*100);
+  const phone=window.matchMedia('(max-width:760px)').matches;
+  const near=Math.max(phone?2:4,(phone?40:90)/(tr.clientWidth||600)*100);
+  document.getElementById('legend').innerHTML=R.map(s=>`<span style="--c:${COLOR[s.k]}"><i></i>${s.p} <b>${s.main}</b></span>`).join('');
   const groups=[];
   for(const s of [...R].sort((x,y)=>x.main-y.main)){
     const pos=s.main/TOTAL_MAIN*100;const g=groups.find(g=>pos-g.first<near);
@@ -477,6 +587,9 @@ function renderRoute(R){
     const same=g.list.every(s=>s.main===g.list[0].main);
     const label=same?`${g.list.map(s=>s.p).join(', ')} · ${g.list[0].main}`:g.list.map(s=>`${s.p} ${s.main}`).join(' · ');
     tr.insertAdjacentHTML('beforeend',`<div class="cargrp" style="inset-inline-start:${pos}%"><div class="cars">${g.list.map(s=>`<span class="car ${s.k===P.me?'me':''}" style="--c:${COLOR[s.k]}" title="${s.p}">${s.p[0]}</span>`).join('')}</div><small>${label}</small></div>`);
+    /* keep the whole group (cars + label) inside the road at both ends */
+    const el=tr.lastElementChild,W=tr.clientWidth,w=el.offsetWidth;
+    if(W&&w){const c=Math.min(Math.max(pos/100*W,w/2),W-w/2);el.style.insetInlineStart=(c/W*100)+'%';}
   }
 }
 function renderBoard(R){
@@ -502,6 +615,7 @@ function renderMissions(){
   document.getElementById('hideDone').setAttribute('aria-pressed',P.hideDone);
   document.getElementById('onlyMain').setAttribute('aria-pressed',P.onlyMain);
   const al=[];
+  if(!me&&conn==='live')al.push('<div class="alert warn" style="align-items:center"><span>כדי לסמן משימות, בחר/י קודם את השם שלך.</span><button class="btn" type="button" data-openpick>בחירת שם</button></div>');
   if(me){
     for(const m of me.missed)al.push(`<div class="alert bad"><b>לא סומנה:</b><span>${esc(m.name)} (${chName(m.ch)}) נעלמת אחרי שממשיכים בעלילה, ומשימות מאוחרות יותר כבר סומנו. אם עשית אותה, סמן/י אותה כאן.</span></div>`);
     const upcoming=MISSABLES.find(m=>!me.d.has(m.i)&&!me.missed.includes(m)&&m.ch===me.curCh);
@@ -530,7 +644,9 @@ let seenTop=null;
 function renderFeed(){
   const evs=[];for(const p of PLAYERS)for(const e of metaOf(p.k).events)evs.push({...e,who:p.k});
   evs.sort((a,b)=>b.t-a.t);
-  const top=evs[0]?evs[0].t+evs[0].who:null;const isNew=seenTop!==null&&top!==seenTop;seenTop=top;
+  const top=evs[0]?evs[0].t+evs[0].who:null;const isNew=seenTop!==null&&top!==seenTop;
+  if(isNew&&P.tab!=='feed'){const prev=evs.findIndex(e=>e.t+e.who===seenTop);unseen=Math.min(9,unseen+(prev>0?prev:1));renderTabs();}
+  seenTop=top;
   document.getElementById('feed').innerHTML=evs.length?evs.slice(0,30).map((e,ix)=>{
     const who=NAME[e.who];let tx;
     if(e.imp)tx=`<b>${who}</b>: ההתקדמות יובאה מהגיליון <em>(${e.main} ראשיות, ${e.opt} אופציונליות)</em>`;
@@ -585,7 +701,7 @@ function renderBadges(){
   h.textContent=`ההישגים של ${NAME[k]}`;
   box.innerHTML=badges(k).map(b=>`<div class="bd ${b.on?'on':''}"><b>${b.n}</b><span>${b.d}</span><span class="num">${b.pr}</span></div>`).join('');
 }
-function render(){const R=ranked();renderStatus();renderTop();renderRoute(R);renderBoard(R);renderMissions();renderFeed();renderRecap(R);renderBets(R);renderBadges();}
+function render(){const R=ranked();renderTabs();renderStatus();renderTop();renderRoute(R);renderBoard(R);renderMissions();renderFeed();renderRecap(R);renderBets(R);renderBadges();}
 
 function toast(html){const t=document.createElement('div');t.className='toast';t.innerHTML=html;const box=document.getElementById('toasts');box.appendChild(t);setTimeout(()=>t.remove(),3200);while(box.children.length>3)box.firstChild.remove();}
 
@@ -660,12 +776,17 @@ document.getElementById('dlgForm').addEventListener('submit',e=>{
 });
 document.getElementById('dlgCancel').addEventListener('click',closeDlg);
 document.getElementById('dlg').addEventListener('click',e=>{if(e.target.id==='dlg')closeDlg();});
-document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!document.getElementById('dlg').hidden)closeDlg();});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){if(!document.getElementById('dlg').hidden)closeDlg();closePick();}});
+let rz;window.addEventListener('resize',()=>{clearTimeout(rz);rz=setTimeout(()=>renderRoute(ranked()),150);});
 
 /* ---------- events ---------- */
 document.addEventListener('change',e=>{const t=e.target;if(t.matches('.m input[data-i]'))toggle(+t.dataset.i,t.checked);});
 document.addEventListener('click',e=>{
   const w=e.target.closest('#who button');if(w){const k=w.dataset.p;if(k===P.me)return;if(conn!=='live'){toast('מחכים לחיבור לגיליון…');return;}openDlg(k);return;}
+  if(e.target.closest('#meBtn')||e.target.closest('[data-openpick]')){if(conn!=='live'){toast('מחכים לחיבור לגיליון…');return;}openPick();return;}
+  const pc=e.target.closest('[data-pick]');if(pc){const k=pc.dataset.pick;closePick();if(!k){P.me=null;P.pin=null;saveP();render();toast('התנתקת מהמכשיר הזה');}else if(k!==P.me)openDlg(k);return;}
+  if(e.target.closest('#pickCancel')||e.target.id==='pick'){closePick();return;}
+  const go=e.target.closest('[data-go]');if(go){P.tab=go.dataset.go;if(P.tab==='feed')unseen=0;saveP();renderTabs();if(P.tab==='race')renderRoute(ranked());window.scrollTo(0,0);return;}
   if(e.target.closest('#logout')){P.me=null;P.pin=null;saveP();render();return;}
   if(e.target.closest('#shield')){P.shield=!P.shield;saveP();render();return;}
   if(e.target.closest('#hideDone')){P.hideDone=!P.hideDone;saveP();renderMissions();return;}
