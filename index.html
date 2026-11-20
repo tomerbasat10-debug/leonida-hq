@@ -84,6 +84,10 @@ a{color:var(--palm)}
 .car + .car{margin-inline-start:-10px}
 .car.me{outline:2px dashed var(--ink);outline-offset:3px}
 .cargrp small{font-size:11px;color:var(--muted);white-space:nowrap}
+/* cars that would overlap move up a row; the road grows by --extra so every car stays at its real spot */
+.road{box-sizing:content-box;padding-top:var(--extra,0px)}
+.road .track{top:var(--extra,0px)}
+.cargrp.up small{display:none}
 
 h2{font-family:var(--f-display);font-weight:700;font-size:34px;line-height:1;margin:0;letter-spacing:.01em}
 .sec{margin-top:28px}
@@ -685,24 +689,40 @@ function renderRoute(R){
     before+=M.filter(m=>m.ch===c&&m.main).length;
   }
   tr.insertAdjacentHTML('beforeend',`<div class="stop finish" style="inset-inline-start:100%"><i></i><span>סוף</span></div>`);
-  /* cars closer than ~90px share one spot so avatars and labels never overlap on a phone */
-  const phone=window.matchMedia('(max-width:760px)').matches;
-  const near=Math.max(phone?2:4,(phone?40:90)/(tr.clientWidth||600)*100);
   document.getElementById('legend').innerHTML=R.map(s=>`<span style="--c:${COLOR[s.k]}"><i></i>${s.p} <b>${s.main}</b></span>`).join('');
+  /* Only players on the exact same count share a spot. Everyone else sits at their real position,
+     and a car that would overlap the one behind it moves up a row, so the order on the road always
+     matches the score (a near-by group used to be drawn as one wide strip, which put Tal past Idan). */
   const groups=[];
   for(const s of [...R].sort((x,y)=>x.main-y.main)){
-    const pos=s.main/TOTAL_MAIN*100;const g=groups.find(g=>pos-g.first<near);
-    g?g.list.push(s):groups.push({first:pos,list:[s]});
+    const g=groups.find(g=>g.main===s.main);
+    g?g.list.push(s):groups.push({main:s.main,list:[s]});
   }
-  for(const g of groups){
-    const pos=g.list.reduce((a,s)=>a+s.main,0)/g.list.length/TOTAL_MAIN*100;
-    const same=g.list.every(s=>s.main===g.list[0].main);
-    const label=same?`${g.list.map(s=>s.p).join(', ')} · ${g.list[0].main}`:g.list.map(s=>`${s.p} ${s.main}`).join(' · ');
-    tr.insertAdjacentHTML('beforeend',`<div class="cargrp" style="inset-inline-start:${pos}%"><div class="cars">${g.list.map(s=>`<span class="car ${s.k===P.me?'me':''}" style="--c:${COLOR[s.k]}" title="${s.p}">${s.p[0]}</span>`).join('')}</div><small>${label}</small></div>`);
-    /* keep the whole group (cars + label) inside the road at both ends */
-    const el=tr.lastElementChild,W=tr.clientWidth,w=el.offsetWidth;
-    if(W&&w){const c=Math.min(Math.max(pos/100*W,w/2),W-w/2);el.style.insetInlineStart=(c/W*100)+'%';}
+  const road=tr.parentElement;road.style.setProperty('--extra','0px');
+  const W=tr.clientWidth,pad=parseFloat(getComputedStyle(tr).insetInlineStart)||0;
+  const mk=groups.map(g=>{
+    const label=`${g.list.map(s=>s.p).join(', ')} · ${g.main}`;
+    tr.insertAdjacentHTML('beforeend',`<div class="cargrp"><div class="cars">${g.list.map(s=>`<span class="car ${s.k===P.me?'me':''}" style="--c:${COLOR[s.k]}" title="${s.p}">${s.p[0]}</span>`).join('')}</div><small>${label}</small></div>`);
+    const el=tr.lastElementChild,cars=el.querySelector('.cars');
+    /* w: whole marker; h: centre to the front (or back) car of a tied strip */
+    return{el,w:el.offsetWidth,h:(cars.offsetWidth-cars.firstElementChild.offsetWidth)/2,pct:g.main/TOTAL_MAIN*100,c:g.main/TOTAL_MAIN*W,ch:cars.offsetHeight};
+  });
+  if(W){
+    /* at the two ends a marker may lean into the road's margin, but not past it */
+    const lo=m=>m.w/2-pad,hi=m=>W-m.w/2+pad;
+    /* each back car sits at or ahead of the previous front car: push forward, then back from the finish */
+    mk.forEach((m,i)=>{m.c=Math.max(m.c,lo(m),i?mk[i-1].c+mk[i-1].h+m.h:-Infinity);});
+    for(let i=mk.length-1;i>=0;i--){const m=mk[i];m.c=Math.min(m.c,hi(m),i<mk.length-1?mk[i+1].c-mk[i+1].h-m.h:Infinity);}
   }
+  const laneEnd=[],step=(mk[0]?mk[0].ch:30)+4;let lanes=1;
+  for(const m of mk){
+    let lane=laneEnd.findIndex(end=>m.c-m.w/2>=end+2);
+    if(lane<0){lane=laneEnd.length;laneEnd.push(0);}
+    laneEnd[lane]=m.c+m.w/2;lanes=Math.max(lanes,lane+1);
+    if(lane){m.el.classList.add('up');m.el.style.marginTop=(-lane*step)+'px';}
+    m.el.style.insetInlineStart=(W?m.c/W*100:m.pct)+'%';
+  }
+  road.style.setProperty('--extra',((lanes-1)*step)+'px');
 }
 /* a plain sentence, not a tag, so it can't be mistaken for a mission name */
 function missLine(s){
