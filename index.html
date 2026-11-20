@@ -214,6 +214,12 @@ footer{margin:36px 0 40px;color:var(--faint);font-size:12px}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 html,body{margin:0}
 :root{--sky:#5CC2FF}
+/* progress bars: always a block with a visible track, so the empty part reads as 'still to go' */
+.bar{display:block;background:color-mix(in srgb,var(--ink) 13%,transparent);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--ink) 6%,transparent)}
+.bar i{min-width:0}
+details.chap summary .mini{display:block;min-width:60px}
+details.chap summary .mini .bar{height:6px}
+details.chap.full summary .cnt{color:var(--palm)}
 @media (min-width:981px){.board{grid-template-columns:repeat(5,minmax(0,1fr))}}
 @media (min-width:761px) and (max-width:980px){.board{grid-template-columns:repeat(3,minmax(0,1fr))}}
 body{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);-webkit-tap-highlight-color:transparent;overscroll-behavior-y:none}
@@ -735,7 +741,7 @@ function renderMissions(){
         <p class="desc" ${vis?'':'aria-hidden="true"'}>${vis?esc(m.desc):'This mission is hidden until you reach it.'}</p></div>
         <div class="side">${vis?`<a href="https://www.google.com/search?q=${q}" target="_blank" rel="noopener">מדריך ↗</a>`:`<button class="peek" type="button" data-peek="${m.i}">${EYE} הצץ</button>`}</div>
       </li>`}).join('');
-    return`<details class="chap" data-ch="${c}" ${open?'open':''}><summary><span class="t">${chName(c)}</span><span class="mini"><span class="bar" style="--c:var(--palm)"><i style="width:${dn/mains.length*100}%"></i></span></span><span class="cnt num">${dn}/${mains.length} ראשיות</span><span class="chev" aria-hidden="true">‹</span></summary><ul class="ms">${rows||'<li class="small" style="padding:6px 8px">אין משימות להצגה בסינון הזה.</li>'}</ul></details>`;
+    return`<details class="chap ${mains.length&&dn===mains.length?'full':''}" data-ch="${c}" ${open?'open':''}><summary><span class="t">${chName(c)}</span><span class="mini"><span class="bar" style="--c:var(--palm)"><i style="width:${dn/mains.length*100}%"></i></span></span><span class="cnt num">${dn}/${mains.length} ראשיות</span><span class="chev" aria-hidden="true">‹</span></summary><ul class="ms">${rows||'<li class="small" style="padding:6px 8px">אין משימות להצגה בסינון הזה.</li>'}</ul></details>`;
   }).join('');
 }
 function ago(t){const m=Math.round((Date.now()-t)/6e4);if(m<1)return'עכשיו';if(m<60)return`לפני ${m} דק׳`;const h=Math.round(m/60);if(h<24)return`לפני ${h} שע׳`;return`לפני ${Math.round(h/24)} ימים`;}
