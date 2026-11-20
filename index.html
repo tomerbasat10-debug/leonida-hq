@@ -214,6 +214,7 @@ footer{margin:36px 0 40px;color:var(--faint);font-size:12px}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 html,body{margin:0}
 :root{--sky:#5CC2FF}
+.pc .missline{font-size:13px;line-height:1.4;color:var(--coral)}
 /* the mission list is English, so it reads left to right inside the Hebrew app */
 #chapters,.mtools{direction:ltr}
 #chapters .m .desc{text-align:left}
@@ -364,7 +365,8 @@ body{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset
   .pc .sum b{color:var(--ink);font-family:var(--f-mono);font-weight:600}
   .pc .nextline{display:block;grid-column:1/-1;grid-row:4;font-size:var(--fs-sm);overflow-wrap:anywhere}
   .pc .nextline .lbl{color:var(--muted)}
-  .pc .eta{grid-row:5;font-size:var(--fs-cap);padding-top:var(--sp2)}
+  .pc .missline{grid-column:1/-1;grid-row:5}
+  .pc .eta{grid-row:6;font-size:var(--fs-cap);padding-top:var(--sp2)}
   .sun{bottom:-70px;opacity:.75}
   .headline p{text-shadow:0 1px 10px rgba(10,21,32,.8)}
   .pill{font-size:11px}
@@ -452,7 +454,7 @@ body{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset
     </section>
 
     <section class="sec" data-tab="race" aria-labelledby="board-h">
-      <div class="sec-head"><h2 id="board-h">טבלת המובילים</h2><p>ראשית 100 · אופציונלית 50 · שאפשר לפספס +100 · ראשון לסגור פרק (1–5) +300</p></div>
+      <div class="sec-head"><h2 id="board-h">טבלת המובילים</h2><p>ראשית <bdi dir="ltr">100 XP</bdi> · אופציונלית <bdi dir="ltr">50 XP</bdi> · שאפשר לפספס: בונוס <bdi dir="ltr">100 XP</bdi> · ראשון לסגור פרק: בונוס <bdi dir="ltr">300 XP</bdi></p></div>
       <div class="board" id="board"></div>
     </section>
 
@@ -703,6 +705,14 @@ function renderRoute(R){
     if(W&&w){const c=Math.min(Math.max(pos/100*W,w/2),W-w/2);el.style.insetInlineStart=(c/W*100)+'%';}
   }
 }
+/* a plain sentence, not a tag, so it can't be mistaken for a mission name */
+function missLine(s){
+  if(!s.missed.length)return'';
+  const m=s.missed[0];
+  if(s.missed.length>1)return`<div class="missline">⚠ ${s.missed.length} משימות שנעלמות אם לא עושים אותן בזמן לא סומנו</div>`;
+  const what=canSee(m.i)?`<bdi dir="ltr">${esc(m.name)}</bdi>`:'משימה מוסתרת';
+  return`<div class="missline">⚠ לא סומנה משימה שנעלמת: ${what} (${chName(m.ch)})</div>`;
+}
 function renderBoard(R){
   document.getElementById('board').innerHTML=R.map((s,ix)=>`
   <article class="pc ${s.k===P.me?'me':''}" style="--c:${COLOR[s.k]}">
@@ -714,10 +724,11 @@ function renderBoard(R){
       <dt>אופציונליות</dt><dd class="num">${s.opt}/${TOTAL_OPT}</dd>
       <dt>עכשיו ב</dt><dd>${s.curCh>5?'סוף':chName(s.curCh)}</dd>
       <dt>הבאה</dt><dd>${nextLabel(s)}</dd>
-      ${s.missed.length?`<dt>התראה</dt><dd><span class="pill bad">${s.missed.length===1?'משימה שאפשר לפספס לא סומנה':`${s.missed.length} משימות שאפשר לפספס לא סומנו`}</span></dd>`:''}
+
     </dl>
     <div class="sum"><span><b>${s.main}</b>/${TOTAL_MAIN} ראשיות</span><span><b>${s.opt}</b>/${TOTAL_OPT} אופציונליות</span><span>${s.curCh>5?'סוף':chName(s.curCh)}</span></div>
-    <div class="nextline"><span class="lbl">הבאה:</span> ${nextLabel(s)}${s.missed.length?` <span class="pill bad">${s.missed.length===1?'פספוס אפשרי':`${s.missed.length} פספוסים אפשריים`}</span>`:''}</div>
+    <div class="nextline"><span class="lbl">הבאה:</span> ${nextLabel(s)}</div>
+    ${missLine(s)}
     <div class="eta">${eta(s)}</div>
   </article>`).join('');
 }
@@ -929,7 +940,12 @@ document.addEventListener('click',e=>{
   if(e.target.closest('#noInstall')){hideInstall();return;}
   if(e.target.closest('#doInstall')&&installEvt){installEvt.prompt();installEvt.userChoice.finally(()=>{installEvt=null;document.getElementById('install').hidden=true;});}
 });
-if('serviceWorker' in navigator&&location.protocol!=='file:')navigator.serviceWorker.register('sw.js').catch(()=>{});
+if('serviceWorker' in navigator&&location.protocol!=='file:'){
+  /* when a new version is published, switch to it right away instead of on the next launch */
+  const hadCtrl=!!navigator.serviceWorker.controller;let swapped=false;
+  navigator.serviceWorker.addEventListener('controllerchange',()=>{if(hadCtrl&&!swapped){swapped=true;location.reload();}});
+  navigator.serviceWorker.register('sw.js').then(r=>r.update()).catch(()=>{});
+}
 
 /* ---------- start + live updates ---------- */
 render();
