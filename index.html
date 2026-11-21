@@ -422,6 +422,12 @@ body{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset
 .btn.ghost{background:transparent;border:1px solid var(--line);color:var(--ink);font-weight:500}
 .btn[disabled]{opacity:.5;cursor:wait}
 .empty{color:var(--muted);font-size:14px;margin:0}
+.pc .bonus{font-size:12px;color:var(--muted);line-height:1.45}
+.pc .bonus b{color:var(--mango);font-family:var(--f-mono);font-weight:600;direction:ltr;unicode-bidi:isolate}
+@media (max-width:760px){.pc .bonus{grid-column:1/-1;grid-row:5;font-size:var(--fs-cap)}}
+.bres{font-size:13px;color:var(--muted);margin:0 0 10px;display:flex;flex-direction:column;gap:3px}
+.bres b{color:var(--ink)}
+.note .stale{color:var(--mango)}
 </style>
 </head>
 <body>
@@ -448,7 +454,7 @@ body{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset
         <svg class="palm" style="inset-inline-start:58%;width:90px;height:130px" viewBox="0 0 120 170" aria-hidden="true"><path d="M58 170 C62 130 66 95 60 58" stroke="#1A1428" stroke-width="6" fill="none"/><path d="M60 58 C40 40 18 44 4 58 C24 46 44 48 60 60 Z M60 58 C84 34 106 36 118 50 C98 42 82 46 60 60 Z M60 58 C58 30 40 14 20 12 C42 22 54 38 59 60 Z M60 58 C76 28 92 16 110 18 C92 26 78 40 61 60 Z" fill="#1A1428"/></svg>
         <div class="sun" aria-hidden="true"></div>
         <div class="headline">
-          <div class="eyebrow">מצב המרוץ · 117 משימות עלילה</div>
+          <div class="eyebrow" id="eyebrow">מצב המרוץ</div>
           <h1 id="hl">Broken in GTA 6</h1>
           <p id="hlsub">טוען…</p>
         </div>
@@ -486,7 +492,7 @@ body{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset
         <section class="panel" data-tab="feed" aria-labelledby="bet-h">
           <h3 id="bet-h"></h3>
           <div id="bets"></div>
-          <p class="small">כל הימור שווה 100 נקודות הימור, בנפרד מה-XP. היחס מחושב לפי כמה משימות ראשיות נשארו לכל אחד עד סוף הפרק.</p>
+          <p class="small">ניחוש נכון = נקודת הימור אחת, בנפרד מה-XP. אפשר לשנות הימור עד שמישהו סוגר את הפרק. היחס מחושב לפי כמה משימות ראשיות נשארו לכל אחד עד סוף הפרק.</p>
         </section>
         <section class="panel" data-tab="me" aria-labelledby="badge-h">
           <h3 id="badge-h"></h3>
@@ -495,7 +501,7 @@ body{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset
       </aside>
     </div>
 
-    <footer>Broken in GTA 6 · המרוץ של עידן, טל, עמית, תומר ואיתי · 117 משימות ראשיות, 24 אופציונליות. כל הסימונים נשמרים בגיליון.</footer>
+    <footer id="footer">Broken in GTA 6 · כל הסימונים נשמרים בגיליון.</footer>
   </main>
 
   <div class="overlay" id="dlg" hidden>
@@ -540,6 +546,7 @@ const MISSABLES=M.filter(m=>m.missable);
 const chName=c=>c===0?'פרולוג':'פרק '+c;
 const START=new Date(2026,10,19);
 const XP={main:100,opt:50,miss:100,first:300};
+const EVENTS_MAX=150; /* per player; the sheet script keeps the same number */
 const fmt=n=>n.toLocaleString('he-IL');
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const clone=o=>JSON.parse(JSON.stringify(o));
@@ -554,7 +561,11 @@ const saveP=()=>{try{localStorage.setItem(LS,JSON.stringify(P))}catch(e){}};
 
 /* ---------- shared state from the sheet ---------- */
 let ST={done:{},meta:{}};
-let conn='loading', lastV=null, pending=0, session=0, dlgFor=null;
+let conn='loading', lastV=null, pending=0, session=0, dlgFor=null, stale=false;
+/* The last state seen on this device, shown right away while the sheet answers (it takes 1.5-2 seconds),
+   so the app never opens on a fake "everyone has 0" screen. */
+const LS_STATE=LS+'-state';
+try{const c=JSON.parse(localStorage.getItem(LS_STATE));if(c&&c.done&&c.meta){ST=c;stale=true;}}catch(e){}
 const emptyMeta=()=>({chAt:{},events:[],picks:{},pinSet:false});
 const doneOf=k=>ST.done[k]||[];
 const metaOf=k=>ST.meta[k]||emptyMeta();
@@ -586,7 +597,8 @@ const enqueue=job=>(chain=chain.then(job,job));
 function applyState(s){
   if(!s||!s.done)return;
   if(pending>0&&P.me){s.done[P.me]=ST.done[P.me];s.meta[P.me]=ST.meta[P.me];}
-  ST=s;lastV=s.v;
+  ST=s;lastV=s.v;stale=false;
+  try{localStorage.setItem(LS_STATE,JSON.stringify(s))}catch(e){}
   if(P.me&&!metaOf(P.me).pinSet){P.me=null;P.pin=null;saveP();toast('הקוד שלך אופס בגיליון. בחר/י את השם שלך שוב.');}
   if(conn!=='live'){conn='live';}
   render();
@@ -630,26 +642,34 @@ const hrs=min=>min<60?`${Math.round(min)} דק׳`:`${(min/60).toFixed(min<600?1:
 const ETA_NOTE='הערכה לפי זמן כל משימה מסרטוני הדרכה ביוטיוב, מותאם לשחקן ממוצע (כ-51 שעות עלילה)';
 /* Play time = the missions you ticked; the finish date comes from hours of story left
    at your hours-per-day so far, so a 5-minute errand and an hour-long heist no longer count the same. */
+/* Each player's clock starts at their own first tick (meta.start), not at one fixed date for everyone.
+   Players who were already playing before the app existed have no start saved, so they count from release day. */
+function startOf(k){const t=metaOf(k).start;return typeof t==='number'&&t>0?t:+START;}
+function pace(s){
+  const days=Math.max(.75,(Date.now()-startOf(s.k))/864e5),perDay=s.playMin/days;
+  return{rate:s.main/days,perDay,end:new Date(Date.now()+s.leftMin/perDay*864e5)};
+}
 function eta(s){
   const play=`⏱ כ-${hrs(s.playMin)} משחק`;
   if(!s.next)return`העלילה הושלמה · ${play}`;
   if(!s.main)return`אין עדיין קצב, אין תחזית · העלילה כ-${hrs(s.leftMin)}`;
-  const days=Math.max(.75,(Date.now()-START)/864e5),rate=s.main/days,perDay=s.playMin/days,d=new Date(Date.now()+s.leftMin/perDay*864e5);
-  return`${play} · כ-${hrs(perDay)} ביום<br>קצב ${rate.toFixed(1)} ראשיות ליום · נשארו כ-${hrs(s.leftMin)} · סיום צפוי ב-${d.getDate()}.${d.getMonth()+1}`;
+  const f=pace(s);
+  return`${play} · כ-${hrs(f.perDay)} ביום<br>קצב ${f.rate.toFixed(1)} ראשיות ליום · נשארו כ-${hrs(s.leftMin)} · סיום צפוי ב-${f.end.getDate()}.${f.end.getMonth()+1}`;
 }
 function nextLabel(s){
   if(!s.next)return'העלילה הושלמה';
-  return`<span dir="ltr">${chEn(s.next.ch)} · Mission ${s.next.no} · <b>${esc(s.next.name)}</b></span>`;
+  if(s.next.ch===0)return`<span dir="ltr"><b>${esc(s.next.name)}</b></span>`;
+  return`<span dir="ltr">${chEn(s.next.ch)} · Mission ${s.next.mk} · <b>${esc(s.next.name)}</b></span>`;
 }
 
 /* ---------- renderers ---------- */
 function renderStatus(){
   const el=document.getElementById('status');
   let left;
-  if(conn==='loading')left='טוען את המרוץ…';
+  if(conn==='loading')left=stale?'<span class="stale">●</span> מציג את המצב האחרון ששמור במכשיר · מתעדכן מהגיליון…':'טוען את המרוץ…';
   else if(conn==='nobackend')left='<span class="off">●</span> האפליקציה עוד לא מחוברת לגיליון: חסרה כתובת הסקריפט בקובץ config.js.';
   else if(conn==='notsetup')left='<span class="off">●</span> הגיליון עוד לא הוכן: צריך להריץ פעם אחת את setup בעורך הסקריפט.';
-  else if(conn==='error')left='<span class="off">●</span> אין חיבור לגיליון כרגע. מנסים שוב אוטומטית.';
+  else if(conn==='error')left=`<span class="off">●</span> אין חיבור לגיליון כרגע${stale?' (מוצג המצב האחרון ששמור במכשיר)':''}. מנסים שוב אוטומטית.`;
   else left=`<span class="live">●</span> מחובר · מתעדכן לבד${P.me?` · את/ה <b>${NAME[P.me]}</b>`:''}`;
   el.innerHTML=`<span>${left}</span>${P.me?'<span class="acts"><button type="button" id="logout">התנתקות</button></span>':''}`;
 }
@@ -690,7 +710,7 @@ function renderRoute(R){
   const [a,b]=R;
   document.getElementById('hl').textContent=!a.main?'הכביש פנוי':(a.main===b.main&&a.xp===b.xp?'תיקו בראש':`${a.p} בראש`);
   const pct=Math.round(a.main/TOTAL_MAIN*100);
-  document.getElementById('hlsub').textContent=a.main?`${a.main-b.main} משימות ראשיות לפני ${b.p} · ${pct}% מהעלילה · ⁦${fmt(a.xp)} XP⁩`:'אף אחד עוד לא התחיל.';
+  document.getElementById('hlsub').textContent=a.main?`${a.xp===b.xp?`שווה ל${b.p}`:`⁦${fmt(a.xp-b.xp)} XP⁩ לפני ${b.p}`} · ${pct}% מהעלילה · ⁦${fmt(a.xp)} XP⁩`:'אף אחד עוד לא התחיל.';
   const tr=document.getElementById('track');tr.querySelectorAll('.stop,.cargrp').forEach(n=>n.remove());
   let before=0;const lead=a.main;
   for(const c of CH){
@@ -743,10 +763,19 @@ function missLine(s){
   const what=canSee(m.i)?`<bdi dir="ltr">${esc(m.name)}</bdi>`:'משימה מוסתרת';
   return`<div class="missline">⚠ לא סומנה משימה שנעלמת: ${what} (${chName(m.ch)})</div>`;
 }
+/* where the XP beyond plain missions comes from, so a player with fewer missions on top makes sense */
+function bonusLine(s){
+  const b=[];
+  if(s.firsts)b.push(`${s.firsts===1?'סיים/ה ראשון/ה פרק':`סיים/ה ראשון/ה ${s.firsts} פרקים`} <b>+${fmt(s.firsts*XP.first)}</b>`);
+  if(s.miss)b.push(`${s.miss===1?'משימה אחת שנעלמת':`${s.miss} משימות שנעלמות`} <b>+${fmt(s.miss*XP.miss)}</b>`);
+  return b.length?`<div class="bonus">XP נוסף: ${b.join(' · ')}</div>`:'';
+}
 function renderBoard(R){
+  /* same XP and same main count = same place */
+  const rank=R.map((s,ix)=>ix);for(let ix=1;ix<R.length;ix++)if(R[ix].xp===R[ix-1].xp&&R[ix].main===R[ix-1].main)rank[ix]=rank[ix-1];
   document.getElementById('board').innerHTML=R.map((s,ix)=>`
   <article class="pc ${s.k===P.me?'me':''}" style="--c:${COLOR[s.k]}">
-    <div class="row1"><span class="nm">${s.p}${s.k===P.me?'<span class="youtag">את/ה</span>':''}</span><span class="rank">#${ix+1}</span></div>
+    <div class="row1"><span class="nm">${s.p}${s.k===P.me?'<span class="youtag">את/ה</span>':''}</span><span class="rank">#${rank[ix]+1}</span></div>
     <div class="xp num">${fmt(s.xp)}<small>XP</small></div>
     <div class="bar" role="img" aria-label="${Math.round(s.main/TOTAL_MAIN*100)}% מהעלילה"><i style="width:${s.main/TOTAL_MAIN*100}%"></i></div>
     <dl class="kv">
@@ -758,6 +787,7 @@ function renderBoard(R){
     </dl>
     <div class="sum"><span><b>${s.main}</b>/${TOTAL_MAIN} ראשיות</span><span><b>${s.opt}</b>/${TOTAL_OPT} אופציונליות</span><span>${s.curCh>5?'סוף':chName(s.curCh)}</span></div>
     <div class="nextline"><span class="lbl">הבאה:</span> ${nextLabel(s)}</div>
+    ${bonusLine(s)}
     <div class="eta" title="${ETA_NOTE}">${eta(s)}</div>
   </article>`).join('');
 }
@@ -785,7 +815,7 @@ function renderMissions(){
       const q=encodeURIComponent('GTA 6 '+m.name+' mission walkthrough');
       return`<li class="m ${done?'done':''} ${m.main?'':'opt'} ${vis?'':'locked'} ${cur?'current':''}">
         <input type="checkbox" id="m-${m.i}" data-i="${m.i}" ${done?'checked':''} ${act?'':'disabled'} aria-label="${vis?esc(m.name):'Hidden mission'}">
-        <div class="body"><div class="title"><span class="n">${m.main?m.no:'·'}</span><label for="m-${m.i}" ${vis?'':'aria-hidden="true"'}>${vis?esc(m.name):'●●●●● ●●●● ●●●'}</label>${pills}</div>
+        <div class="body"><div class="title"><span class="n">${m.main?m.mk:'·'}</span><label for="m-${m.i}" ${vis?'':'aria-hidden="true"'}>${vis?esc(m.name):'●●●●● ●●●● ●●●'}</label>${pills}</div>
         <p class="desc" ${vis?'':'aria-hidden="true"'}>${vis?esc(m.desc):'This mission is hidden until you reach it.'}</p></div>
         <div class="side">${vis?`<a href="https://www.google.com/search?q=${q}" target="_blank" rel="noopener">Guide ↗</a>`:`<button class="peek" type="button" data-peek="${m.i}">${EYE} Peek</button>`}</div>
       </li>`}).join('');
@@ -810,23 +840,41 @@ function renderFeed(){
 }
 function renderRecap(R){
   const [a,b]=R;const zeros=R.filter(s=>!s.main).map(s=>s.p);const lines=[];
-  if(a.main)lines.push(`<b>${a.p}</b> בראש עם ${fmt(a.xp)} XP ו-${a.main} משימות ראשיות. ${b.main?`${b.p} במקום השני, ${a.main-b.main} משימות מאחור.`:'אין עדיין מקום שני של ממש.'}`);
+  const gap=a.main-b.main;
+  const second=!b.main?'אין עדיין מקום שני של ממש.':a.xp===b.xp?`${b.p} צמוד/ה עם אותו XP.`:gap>0?`${b.p} במקום השני, ${gap} משימות ראשיות מאחור.`:gap===0?`${b.p} במקום השני, באותה משימה ראשית אבל עם פחות בונוסים.`:`${b.p} במקום השני, אבל דווקא ${-gap===1?'משימה ראשית אחת':`${-gap} משימות ראשיות`} קדימה בעלילה: ${a.p} מוביל/ה בזכות בונוסים.`;
+  if(a.main)lines.push(`<b>${a.p}</b> בראש עם ${fmt(a.xp)} XP ו-${a.main} משימות ראשיות. ${second}`);
   else lines.push('אף אחד עוד לא יצא לדרך. ליאונידה מחכה.');
   if(zeros.length===1&&a.main)lines.push(`${zeros[0]}: אפס משימות. הפרולוג עדיין מחכה, ובליאונידה כבר שוקלים לפרסם מודעת נעדר.`);
   if(zeros.length>1&&a.main)lines.push(`${zeros.slice(0,-1).join(', ')} ו${zeros.at(-1)}: אפס משימות ביחד. הפרולוג עדיין מחכה, ובליאונידה כבר שוקלים לפרסם מודעת נעדר.`);
   const mis=R.filter(s=>s.missed.length);
   if(mis.length)lines.push(`בתחקיר: ל${mis.map(s=>s.p).join(' ול')} יש משימה שאפשר לפספס שלא סומנה, למרות שהעלילה כבר המשיכה. או שזה פוספס, או שמישהו מתעצל לסמן.`);
-  if(a.next&&a.main)lines.push(`לפי הקצב הנוכחי: ${eta(a).split('· ')[1]||''} ל${a.p}.`);
+  const f=a.next&&a.main?pace(a):null;
+  if(f)lines.push(`לפי הקצב הנוכחי (כ-${hrs(f.perDay)} משחק ביום), ${a.p} יסיים/תסיים את העלילה בערך ב-${f.end.getDate()}.${f.end.getMonth()+1}.`);
   document.getElementById('recap').innerHTML=lines.map(l=>`<p>${l}</p>`).join('');
 }
+/* Bets settle when a chapter's First Blood is decided: a right guess is one bet point.
+   The open bet is always the first chapter nobody has closed yet. */
+function betResults(fm){
+  const res=[],pts={};
+  for(let c=1;c<=5;c++){if(!fm[c])continue;
+    const right=PLAYERS.filter(p=>metaOf(p.k).picks[c]===fm[c]).map(p=>p.k);
+    right.forEach(k=>pts[k]=(pts[k]||0)+1);
+    res.push({c,winner:fm[c],right});}
+  return{res,pts};
+}
 function renderBets(R){
-  const ch=Math.min(Math.max(1,R[0].curCh),5);
+  const fm=firstMap();const {res,pts}=betResults(fm);
+  const ch=[1,2,3,4,5].find(c=>!fm[c]);
+  const past=res.map(r=>`<span>${chName(r.c)}: <b>${NAME[r.winner]}</b> סגר/ה ראשון/ה · ${r.right.length?`צדקו: ${r.right.map(k=>NAME[k]).join(', ')}`:'אף אחד לא ניחש'}</span>`);
+  const table=Object.keys(pts).length?`<span>נקודות הימור: ${PLAYERS.filter(p=>pts[p.k]).sort((a,b)=>pts[b.k]-pts[a.k]).map(p=>`${p.n} <b>${pts[p.k]}</b>`).join(' · ')}</span>`:'';
+  const head=past.length?`<div class="bres">${past.join('')}${table}</div>`:'';
+  if(!ch){document.getElementById('bet-h').innerHTML='הימורים: כל הפרקים נסגרו';document.getElementById('bets').innerHTML=head;return;}
   document.getElementById('bet-h').innerHTML=`הימור: מי סוגר ראשון את ${chName(ch)}?`;
   const end=Math.max(...M.filter(m=>m.ch===ch).map(m=>m.i));
   const rem=R.map(s=>({s,r:M.filter(m=>m.main&&m.i<=end&&!s.d.has(m.i)).length}));
   const w=rem.map(x=>1/Math.pow(x.r+2,2));const W=w.reduce((a,b)=>a+b,0);
   const myPick=P.me?metaOf(P.me).picks[ch]:null;const act=canAct();
-  document.getElementById('bets').innerHTML=rem.map((x,k)=>{
+  document.getElementById('bets').innerHTML=head+rem.map((x,k)=>{
     const odds=Math.max(1.1,W/w[k]);const backers=PLAYERS.filter(p=>metaOf(p.k).picks[ch]===x.s.k).map(p=>p.k);
     return`<div class="bet" style="--c:${COLOR[x.s.k]}"><span class="bn"><span class="dot"></span><span>${x.s.p} <small>· ${x.r?`נשארו ${x.r}`:'כבר סגר/ה'}</small></span></span>
       <span class="backers">${backers.map(n=>`<i style="--c:${COLOR[n]}">${NAME[n]}</i>`).join('')}</span>
@@ -837,14 +885,18 @@ function badges(k){
   const s=stats(k);const opts=CH.map(c=>M.filter(m=>m.ch===c&&!m.main)).filter(l=>l.length);
   const bestOpt=Math.max(...opts.map(l=>l.filter(m=>s.d.has(m.i)).length/l.length));
   const leaderCh=Math.max(...PLAYERS.map(p=>base(p.k).curCh));
+  const half=Math.ceil(TOTAL_MAIN/2);
+  /* Speedrunner: 5 missions ticked on the same day, from the saved feed, so it sticks and everyone sees it */
+  const perDay={};for(const e of metaOf(k).events)if(e.i!=null&&!e.imp){const d=new Date(e.t).toDateString();perDay[d]=(perDay[d]||0)+1;}
+  const bestDay=Math.max(0,...Object.values(perDay));
   return[
     {n:'צעד ראשון',d:'משימה ראשית אחת',on:s.main>=1,pr:`${Math.min(s.main,1)}/1`},
     {n:'פרק סגור',d:'לסיים פרק שלם',on:s.chDone.some(c=>c>0),pr:`${s.chDone.filter(c=>c>0).length} פרקים`},
     {n:'אספן',d:'כל האופציונליות בפרק',on:s.chAllOpt.length>0,pr:`${Math.round(bestOpt*100)}% בפרק הכי טוב`},
-    {n:'בלי פספוסים',d:'כל 5 המשימות שאפשר לפספס',on:s.miss===MISSABLES.length,pr:`${s.miss}/${MISSABLES.length}`},
+    {n:'בלי פספוסים',d:`כל ${MISSABLES.length} המשימות שאפשר לפספס`,on:s.miss===MISSABLES.length,pr:`${s.miss}/${MISSABLES.length}`},
     {n:'First Blood',d:'ראשון לסגור פרק',on:s.firsts>0,pr:`${s.firsts} פעמים`},
-    {n:'Speedrunner',d:'5 משימות בביקור אחד',on:k===P.me&&session>=5,pr:k===P.me?`${Math.min(session,5)}/5 הביקור הזה`:'—'},
-    {n:'חצי דרך',d:'59 משימות ראשיות',on:s.main>=59,pr:`${s.main}/59`},
+    {n:'Speedrunner',d:'5 משימות ביום אחד',on:bestDay>=5,pr:`${Math.min(bestDay,5)}/5 ביום הכי טוב`},
+    {n:'חצי דרך',d:`${half} משימות ראשיות`,on:s.main>=half,pr:`${s.main}/${half}`},
     {n:'תקוע בפרולוג',d:'אפס משימות כשאחרים כבר בפרק 2',on:s.main===0&&leaderCh>=2,pr:s.main?'השתחררת':'עדיין כאן'},
   ];
 }
@@ -875,11 +927,13 @@ function toggle(i,on){
   const now=Date.now();
   if(on){
     const m=M[i],gain=(m.main?XP.main:XP.opt)+(m.missable?XP.miss:0);session++;
+    if(typeof meta.start!=='number'&&!before.main&&!before.opt)meta.start=now; /* first tick ever: this player's own clock starts */
     meta.events.unshift({i,xp:gain,t:now});
     toast(`<b>+${gain} XP</b> · ${esc(m.name)}`);
     const after=base(k);
     for(const c of after.chDone)if(!before.chDone.includes(c)){
-      if(c>0)meta.chAt[c]=now;
+      /* re-closing a chapter after an accidental untick keeps the original time, so First Blood doesn't flip */
+      if(c>0&&typeof meta.chAt[c]!=='number')meta.chAt[c]=now;
       ST.meta[k]={...meta,pinSet:true};
       const first=c>0&&firstMap()[c]===k;
       meta.events.unshift({ch:c,first:first?1:0,xp:first?XP.first:0,t:now});
@@ -889,9 +943,9 @@ function toggle(i,on){
     session=Math.max(0,session-1);
     const after=base(k);const lost=before.chDone.filter(c=>!after.chDone.includes(c));
     meta.events=meta.events.filter(e=>!(e.i===i||(e.ch!=null&&lost.includes(e.ch))));
-    for(const c of lost)delete meta.chAt[c];
+    /* chAt stays: First Blood only counts while the chapter is complete again, and then the first close time is the real one */
   }
-  meta.events=meta.events.slice(0,40);
+  meta.events=meta.events.slice(0,EVENTS_MAX);
   ST.meta[k]={...meta,pinSet:true};
   if(on)badges(k).filter(b=>b.on&&!bBefore.includes(b.n)).forEach(b=>toast(`הישג חדש: <b>${b.n}</b>`));
   render();
@@ -977,6 +1031,8 @@ if('serviceWorker' in navigator&&location.protocol!=='file:'){
 }
 
 /* ---------- start + live updates ---------- */
+document.getElementById('eyebrow').textContent=`מצב המרוץ · ${TOTAL_MAIN} משימות עלילה`;
+{const ns=PLAYERS.map(p=>p.n);document.getElementById('footer').textContent=`Broken in GTA 6 · המרוץ של ${ns.slice(0,-1).join(', ')} ו${ns.at(-1)} · ${TOTAL_MAIN} משימות ראשיות, ${TOTAL_OPT} אופציונליות. כל הסימונים נשמרים בגיליון.`;}
 render();
 refresh();
 showInstall();
